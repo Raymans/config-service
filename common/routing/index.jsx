@@ -1,7 +1,7 @@
 import React from 'react'
 import {Route, Redirect, Switch} from 'react-router'
 import {createBrowserHistory} from 'history'
-import {App, Inbox, Dashboard, Login} from 'containers'
+import {App, Inbox, Dashboard, Login, DeployConfig} from 'containers'
 import {RouteAuth} from 'components'
 
 export const history = getHistory()
@@ -21,7 +21,7 @@ export const appRouting = [
     name: 'Application',
     exact: true,
     icon: 'archive',
-    sidebarVisible: true,
+    // sidebarVisible: true,
     tag: RouteAuth,
     component: Inbox
   },
@@ -46,7 +46,14 @@ export const appRouting = [
     name: 'Auth',
     tag: Route,
     component: Login
+  },
+  {
+    path: '/deploy-config',
+    name: 'DeployConfig',
+    tag: Route,
+    component: DeployConfig
   }
+
 ]
 
 /**
@@ -72,7 +79,7 @@ export const Routing = authCheck => {
     <App>
       <Switch>
         {routesRendered}
-        <Redirect to="/" />
+        <Redirect to="/"/>
       </Switch>
     </App>
   )
