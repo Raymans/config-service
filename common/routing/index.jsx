@@ -10,7 +10,7 @@ export const appRouting = [
   {
     path: '/',
     icon: 'newspaper',
-    name: 'Dashboard',
+    name: 'Deploy Configs',
     exact: true,
     sidebarVisible: true,
     tag: RouteAuth,
@@ -27,7 +27,7 @@ export const appRouting = [
   },
   {
     path: '/inbox',
-    name: 'Inbox',
+    name: 'Resources',
     exact: true,
     icon: 'comments outline',
     sidebarVisible: true,
@@ -38,7 +38,7 @@ export const appRouting = [
     external: true,
     path: 'https://github.com/Metnew/react-semantic.ui-starter',
     icon: 'github',
-    name: 'Github',
+    name: 'Properties',
     sidebarVisible: true
   },
   {
@@ -48,9 +48,17 @@ export const appRouting = [
     component: Login
   },
   {
+    path: '/deploy-config/create',
+    name: 'DeployConfig',
+    tag: Route,
+    isEditMode: true,
+    component: DeployConfig
+  },
+  {
     path: '/deploy-config',
     name: 'DeployConfig',
     tag: Route,
+    isEditMode: false,
     component: DeployConfig
   }
 
