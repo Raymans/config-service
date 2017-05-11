@@ -2,7 +2,7 @@ import React, {Component} from 'react'
 import PropTypes from 'prop-types'
 import {Breadcrumb as SUIBreadcrumb} from 'semantic-ui-react'
 
-export default class Breadcrumb extends Component {
+export default class BreadcrumbComponent extends Component {
   static propTypes = {
     navPaths: PropTypes.array
   }
@@ -14,7 +14,7 @@ export default class Breadcrumb extends Component {
   render () {
     const {navPaths} = this.props
 
-    let paths = navPaths.map((path, i, arr) => {
+    let breadcrumbs = navPaths.map((path, i, arr) => {
       if ((arr.length - 1) === i) {
         return <SUIBreadcrumb.Section active>{path}</SUIBreadcrumb.Section>
       }
@@ -26,10 +26,7 @@ export default class Breadcrumb extends Component {
       )
     })
     return (
-      <SUIBreadcrumb>
-        {paths}
-
-      </SUIBreadcrumb>
+      <SUIBreadcrumb>{breadcrumbs}</SUIBreadcrumb>
     )
   }
 }
