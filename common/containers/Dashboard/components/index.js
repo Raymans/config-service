@@ -1,17 +1,13 @@
 import React, {Component} from 'react'
-import {Input, Icon, Menu, Table, Header, Breadcrumb, Segment, Button} from 'semantic-ui-react'
+import {Input, Icon, Menu, Table, Header, Segment, Button} from 'semantic-ui-react'
+import {Breadcrumb} from 'components'
 
 export default class DashboardComponent extends Component {
   render () {
+    let breadcrumbProps = {navPaths: ['HOME', 'APPLICATION', 'Deployment Config']}
     return (
       <div>
-        <Breadcrumb>
-          <Breadcrumb.Section link>Home</Breadcrumb.Section>
-          <Breadcrumb.Divider icon='right angle'/>
-          <Breadcrumb.Section link>Applications</Breadcrumb.Section>
-          <Breadcrumb.Divider icon='right angle'/>
-          <Breadcrumb.Section active>Deployment Configurations</Breadcrumb.Section>
-        </Breadcrumb>
+        <Breadcrumb {...breadcrumbProps} />
 
         <Header as='h1'>
           <Icon name='cloud'/>
