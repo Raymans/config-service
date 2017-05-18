@@ -30,11 +30,11 @@ function requestWrapper (method) {
     if (url.match(/^https?:\/\//gi) > -1) {
       let token = getLocalToken()
       if (token) {
-        defaults.headers['Authorization'] = `JWT ${token}`
+        defaults.headers['Authorization'] = `Basic YWRtaW46MTIzNDU2`
       }
       url = window.BASE_API + url
     }
-
+    defaults.headers['Authorization'] = `Basic YWRtaW46MTIzNDU2`
     if (data) {
       defaults.body = data
     }

@@ -15,7 +15,7 @@ export default class Footer extends Component {
               <Grid>
             <Grid.Row>
               <Grid.Column width={12}>
-                <a href="/deploy-config">
+                <a href="/deploy-config/123">
                   <Header as="h3" inverted>
                     <Icon name="github" />
                     <Header.Content>

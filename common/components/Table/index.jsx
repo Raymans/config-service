@@ -1,6 +1,7 @@
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
 import {Table, Menu, Icon} from 'semantic-ui-react'
+import {NavLink} from 'react-router-dom'
 
 export default class TableComponent extends Component {
   static propTypes = {
@@ -10,7 +11,7 @@ export default class TableComponent extends Component {
   }
 
   shouldComponentUpdate () {
-    return false
+    return true
   }
 
   render () {
@@ -23,7 +24,12 @@ export default class TableComponent extends Component {
       <Table.Row>
         {row.map((data, j) => {
           let textAlign = data && data instanceof Number ? 'right' : 'left'
-          return <Table.Cell textAlign={textAlign} key={j}>{data}</Table.Cell>
+          return (
+            <Table.Cell textAlign={textAlign} key={j}>
+              <NavLink
+                to={`/deploy-config/${row[0]}`}>{data}</NavLink>
+            </Table.Cell>
+          )
         }
         )}
       </Table.Row>
@@ -40,7 +46,7 @@ export default class TableComponent extends Component {
         </Table.Body>
         <Table.Footer>
           <Table.Row>
-            <Table.HeaderCell colSpan='6'>
+            <Table.HeaderCell colSpan={headers.length}>
               <Menu floated='right' pagination>
                 <Menu.Item as='a' icon>
                   <Icon name='left chevron'/>

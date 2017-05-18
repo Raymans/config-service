@@ -6,6 +6,12 @@ import {RouteAuth} from 'components'
 
 export const history = getHistory()
 
+const DeployConfigEdit = props => {
+  return (
+    <DeployConfig isEditMode {...props} />
+  )
+}
+
 export const appRouting = [
   {
     path: '/',
@@ -49,16 +55,14 @@ export const appRouting = [
   },
   {
     path: '/deploy-config/create',
-    name: 'DeployConfig',
+    name: 'Deploy Config - Create',
     tag: Route,
-    isEditMode: true,
-    component: DeployConfig
+    component: DeployConfigEdit
   },
   {
-    path: '/deploy-config',
-    name: 'DeployConfig',
+    path: '/deploy-config/:envName',
+    name: 'Deploy Config Detail',
     tag: Route,
-    isEditMode: false,
     component: DeployConfig
   }
 

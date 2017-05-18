@@ -1,5 +1,6 @@
 export * from './auth'
 export * from './common'
 export * from './dashboard'
+export * from './deployConfig'
 export * from './inbox'
 export * from './layout'

@@ -2,34 +2,38 @@ import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import PropTypes from 'prop-types'
 import DashboardComponent from './components'
-import {GET_STATISTICS} from 'actions/dashboard'
+import {GET_DEPLOYMENT_CONFIGS} from 'actions/dashboard'
 
 class Dashboard extends Component {
   static propTypes = {
-    statistics: PropTypes.array,
-    getStatistics: PropTypes.func.isRequired
+    deploymentConfigs: PropTypes.array,
+    getDeploymentConfigs: PropTypes.func.isRequired
   }
 
   componentDidMount () {
-    this.props.getStatistics()
+    this.props.getDeploymentConfigs()
   }
 
   render () {
-    let {statistics} = this.props
-    let props = {statistics}
+    let {deploymentConfigs} = this.props
+    let props = {deploymentConfigs}
 
-    return <DashboardComponent {...props} />
+    return (
+      <div>
+        <DashboardComponent {...props} />
+      </div>
+    )
   }
 }
 
 function mapStateToProps (state) {
-  return {statistics: state.dashboard.statistics}
+  return {deploymentConfigs: state.dashboard.deploymentConfigs}
 }
 
 function mapDispatchToProps (dispatch) {
   return {
-    getStatistics: async () => {
-      let result = await dispatch(GET_STATISTICS)
+    getDeploymentConfigs: async() => {
+      let result = await dispatch(GET_DEPLOYMENT_CONFIGS)
       dispatch(result)
     }
   }

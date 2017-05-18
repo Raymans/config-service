@@ -1,15 +1,28 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
-import {Icon, Menu, Header, Breadcrumb, Grid, Segment, Form, Input, Button, Label, Table, Divider} from 'semantic-ui-react'
-import {appRouting} from 'routing'
+import {Icon, Menu, Header, Grid, Segment, Form, Input, Button, Label, Divider} from 'semantic-ui-react'
+import PropTypes from 'prop-types'
+import {Breadcrumb, Title} from 'components'
+import DetailGridComponent from './components/DetailGridComponent'
+import {GET_DEPLOYMENT_CONFIG} from 'actions/deployConfig'
 
-class DeployConfig extends Component {
-  static propTypes = {}
+class DeployConfigDetail extends Component {
+  static propTypes = {
+    isEditMode: PropTypes.bool,
+    deploymentConfig: PropTypes.object,
+    getDeploymentConfig: PropTypes.func.isRequired,
+    match: PropTypes.object
+
+  }
   state = {activeItem: 'basic'}
 
   handleItemClick = (e, {name}) => this.setState({activeItem: name})
 
   handleChange = (e, {value}) => this.setState({value})
+
+  componentDidMount () {
+    this.props.getDeploymentConfig()
+  }
 
   InputExampleRightLabeledBasic = () => (
     <Input
@@ -21,27 +34,79 @@ class DeployConfig extends Component {
 
   render () {
     const {value, activeItem} = this.state
-    const matchedRoutes = appRouting.filter(a => a.path === location.pathname)
-    const header = (
-      <Header as='h1'>
-        <Icon name='cloud'/>
-        <Header.Content>{matchedRoutes[0].isEditMode ? 'Create' : 'Staging'}</Header.Content>
-      </Header>
-    )
-    const breadcrumb = (
-      <Breadcrumb>
-        <Breadcrumb.Section link>Home</Breadcrumb.Section>
-        <Breadcrumb.Divider/>
-        <Breadcrumb.Section link>Applications</Breadcrumb.Section>
-        <Breadcrumb.Divider/>
-        <Breadcrumb.Section active>Deployment Configurations</Breadcrumb.Section>
-      </Breadcrumb>
-    )
-    if (!matchedRoutes[0].isEditMode) {
+    const {isEditMode, deploymentConfig = {}} = this.props
+    const {
+      memory, instances, cpus, diskSpaceInMb, constraints,
+      nexusConfiguration: nexus = {},
+      dockerConfiguration: docker = {},
+      marathonConfiguration: marathon = {},
+      envVariables = {},
+      healthChecks = {}
+    } = deploymentConfig
+    const {groupId, artifactId, repositoryName, artifactType} = nexus
+    const {dockerRegistryUrl, imageName, pullImageOnEveryLaunch, networkType} = docker
+    const {marathonUrl, marathonUser, marathonPassword} = marathon
+    const {SERVICE_NAME, SERVICE_TAGS, SPRING_PROFILES_ACTIVE, SERVICE_REGION, SERVICE_CHECK_HTTP, SERVICE_CHECK_INTERVAL, SERVICE_CHECK_TIMEOUT, spring_cloud_client_hostname} = envVariables
+    const {protocol, command, gracePeriodSeconds, intervalSeconds, timeoutSeconds, maxConsecutiveFailures} = healthChecks
+
+    const envName = this.props.match.params.envName || 'Create'
+
+    const breadcrumbProps = {
+      navs: [
+        {name: 'HOME', url: '/'},
+        {name: 'APPLICATION', url: '/'},
+        {name: 'Deployment Configurations', url: '/'},
+        {name: envName, url: '/'}
+      ]
+    }
+    const titleProps = {icon: 'cloud', content: isEditMode ? 'Create' : envName}
+    if (!isEditMode) {
+      const gridsProps = {
+        overview: {
+          title: 'Overview',
+          data: {memory, instances, cpus, diskSpaceInMb, constraints},
+          titleColor: 'black'
+        },
+        nexus: {
+          title: 'Nexus',
+          data: {groupId, artifactId, repositoryName, artifactType},
+          titleColor: 'grey'
+        },
+        docker: {
+          title: 'Docker',
+          data: {dockerRegistryUrl, imageName, pullImageOnEveryLaunch, networkType},
+          titleColor: 'blue   '
+        },
+        marathon: {
+          title: 'Marathon',
+          data: {marathonUrl, marathonUser, marathonPassword},
+          titleColor: 'olive'
+        },
+        envVariables: {
+          title: 'Env Variables',
+          data: {
+            SERVICE_NAME,
+            SERVICE_TAGS,
+            SPRING_PROFILES_ACTIVE,
+            SERVICE_REGION,
+            SERVICE_CHECK_HTTP,
+            SERVICE_CHECK_INTERVAL,
+            SERVICE_CHECK_TIMEOUT,
+            spring_cloud_client_hostname,
+            'eureka_instance_non-secure-port': envVariables['eureka_instance_non-secure-port']
+          },
+          titleColor: 'green'
+        },
+        healthChecks: {
+          title: 'Health Checks',
+          data: {protocol, command, gracePeriodSeconds, intervalSeconds, timeoutSeconds, maxConsecutiveFailures},
+          titleColor: 'red'
+        }
+      }
       return (
         <div>
-          {breadcrumb}
-          {header}
+          <Breadcrumb {...breadcrumbProps} />
+          <Title {...titleProps}/>
 
           <Grid>
             <Grid.Column width={2}>
@@ -59,217 +124,24 @@ class DeployConfig extends Component {
               <Button.Group floated='right'>
                 <Button icon="delete" color='red' content='Delete'/>
                 <Button.Or />
-                <Button icon="file" color='blue' content='Create'/>
+                <Button icon="file" color='blue' content='Edit'/>
               </Button.Group>
               <Divider fitted clearing/>
-                <Segment>
-
-                  <Label as='a' color='black' ribbon size="large">Overview</Label>
-                  <Table definition>
-                    <Table.Body>
-                      <Table.Row>
-                        <Table.Cell collapsing>memory</Table.Cell>
-                        <Table.Cell></Table.Cell>
-                      </Table.Row>
-                      <Table.Row>
-                        <Table.Cell>instances</Table.Cell>
-                        <Table.Cell>instances</Table.Cell>
-                      </Table.Row>
-                      <Table.Row>
-                        <Table.Cell>cpus</Table.Cell>
-                        <Table.Cell>cpus</Table.Cell>
-                      </Table.Row>
-                      <Table.Row>
-                        <Table.Cell>diskSpace</Table.Cell>
-                        <Table.Cell>diskSpace</Table.Cell>
-                      </Table.Row>
-                      <Table.Row>
-                        <Table.Cell>constraints</Table.Cell>
-                        <Table.Cell>constraints</Table.Cell>
-                      </Table.Row>
-                      <Table.Row>
-                        <Table.Cell>consulUrl</Table.Cell>
-                        <Table.Cell>consulUrl</Table.Cell>
-                      </Table.Row>
-                    </Table.Body>
-                  </Table>
-                </Segment>
-              <Segment>
-                <Label as='a' color='grey' size="large" ribbon>Nexus</Label>
-                <Table definition>
-                  <Table.Body>
-                    <Table.Row>
-                      <Table.Cell collapsing>groupId</Table.Cell>
-                      <Table.Cell></Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>artifactId</Table.Cell>
-                      <Table.Cell>instances</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>repositoryName</Table.Cell>
-                      <Table.Cell>cpus</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>artifactType</Table.Cell>
-                      <Table.Cell>diskSpace</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>baseUrl</Table.Cell>
-                      <Table.Cell>constraints</Table.Cell>
-                    </Table.Row>
-                  </Table.Body>
-                </Table>
-              </Segment>
-              <Segment>
-                <Label as='a' color='blue' size="large" ribbon>Docker</Label>
-                <Table definition>
-                  <Table.Body>
-                    <Table.Row>
-                      <Table.Cell collapsing>imageName</Table.Cell>
-                      <Table.Cell></Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>dockerRegistryUrl</Table.Cell>
-                      <Table.Cell>instances</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>pullImageOnEveryLaunch</Table.Cell>
-                      <Table.Cell>cpus</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>networkType</Table.Cell>
-                      <Table.Cell>diskSpace</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>containerPort</Table.Cell>
-                      <Table.Cell>diskSpace</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>hostPort</Table.Cell>
-                      <Table.Cell>diskSpace</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>protocol</Table.Cell>
-                      <Table.Cell>diskSpace</Table.Cell>
-                    </Table.Row>
-                  </Table.Body>
-                </Table>
-              </Segment>
-              <Segment>
-                <Label as='a' color='olive' size="large" ribbon>Marathon</Label>
-                <Table definition>
-                  <Table.Body>
-                    <Table.Row>
-                      <Table.Cell collapsing>marathonUrl</Table.Cell>
-                      <Table.Cell></Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>marathonUser</Table.Cell>
-                      <Table.Cell>instances</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>marathonPassword</Table.Cell>
-                      <Table.Cell>cpus</Table.Cell>
-                    </Table.Row>
-                  </Table.Body>
-                </Table>
-              </Segment>
-
-              <Segment>
-                <Label as='a' color='green' size="large" ribbon>Env Variables</Label>
-                <Table definition>
-                  <Table.Body>
-                    <Table.Row>
-                      <Table.Cell collapsing>SERVICE_NAME</Table.Cell>
-                      <Table.Cell></Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>SERVICE_TAGS</Table.Cell>
-                      <Table.Cell>instances</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>SPRING_PROFILES_ACTIVE</Table.Cell>
-                      <Table.Cell>cpus</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>SERVICE_REGION</Table.Cell>
-                      <Table.Cell>cpus</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>SERVICE_FAULTZONE</Table.Cell>
-                      <Table.Cell>cpus</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>SERVICE_CHECK_HTTP</Table.Cell>
-                      <Table.Cell>cpus</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>SERVICE_CHECK_INTERVAL</Table.Cell>
-                      <Table.Cell>cpus</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>SERVICE_CHECK_TIMEOUT</Table.Cell>
-                      <Table.Cell>cpus</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>spring_cloud_client_hostname</Table.Cell>
-                      <Table.Cell>cpus</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>eureka_instance_non-secure-port</Table.Cell>
-                      <Table.Cell>cpus</Table.Cell>
-                    </Table.Row>
-                  </Table.Body>
-                </Table>
-              </Segment>
-
-              <Segment>
-                <Label as='a' color='red' size="large" ribbon>Health Checks</Label>
-                <Table definition>
-                  <Table.Body>
-                    <Table.Row>
-                      <Table.Cell collapsing>protocol</Table.Cell>
-                      <Table.Cell>cpus</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>command</Table.Cell>
-                      <Table.Cell>cpus</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>gracePeriodSeconds</Table.Cell>
-                      <Table.Cell>cpus</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>intervalSeconds</Table.Cell>
-                      <Table.Cell>cpus</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>timeoutSeconds</Table.Cell>
-                      <Table.Cell>cpus</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>maxConsecutiveFailures</Table.Cell>
-                      <Table.Cell>cpus</Table.Cell>
-                    </Table.Row>
-                  </Table.Body>
-                </Table>
-              </Segment>
+              <DetailGridComponent {...gridsProps.overview}/>
+              <DetailGridComponent {...gridsProps.nexus}/>
+              <DetailGridComponent {...gridsProps.docker}/>
+              <DetailGridComponent {...gridsProps.marathon}/>
+              <DetailGridComponent {...gridsProps.envVariables}/>
+              <DetailGridComponent {...gridsProps.healthChecks}/>
             </Grid.Column>
           </Grid>
-
         </div>
       )
     }
-    // const {isEditMode} = this.props
-    // if (!isEditMode) {
-    //   return (<div></div>)
-    // }
-
     return (
       <div>
-        {breadcrumb}
-        {header}
+        <Breadcrumb {...breadcrumbProps} />
+        <Title {...titleProps}/>
 
         <Grid>
           <Grid.Column width={2}>
@@ -395,11 +267,16 @@ class DeployConfig extends Component {
 }
 
 function mapStateToProps (state) {
-  return {}
+  return {deploymentConfig: state.deployConfig.deploymentConfig}
 }
 
 function mapDispatchToProps (dispatch) {
-  return {}
+  return {
+    getDeploymentConfig: async() => {
+      let result = await dispatch(GET_DEPLOYMENT_CONFIG)
+      dispatch(result)
+    }
+  }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(DeployConfig)
+export default connect(mapStateToProps, mapDispatchToProps)(DeployConfigDetail)

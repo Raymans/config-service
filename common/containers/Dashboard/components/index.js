@@ -1,34 +1,59 @@
 import React, {Component} from 'react'
-import {Segment, Button} from 'semantic-ui-react'
+import PropTypes from 'prop-types'
+import {Segment, Button, Dimmer, Loader, Divider} from 'semantic-ui-react'
 import {Breadcrumb, Title, Table} from 'components'
 import SearchComponent from 'components/common/SearchComponent'
+import {NavLink} from 'react-router-dom'
 
 export default class DashboardComponent extends Component {
+  static propTypes = {
+    deploymentConfigs: PropTypes.array
+  }
+
   render () {
-    const breadcrumbProps = {navPaths: ['HOME', 'APPLICATION', 'Deployment Config']}
-    const titleProps = {icon: 'cloud', content: 'Application: Staging'}
-    const tableProps = {
-      sortable: true,
-      headers: ['Memory', 'Instances', 'Cpus', 'DiskSpaceInMb', 'Constraints', 'ConsulUrl'],
-      rows: [
-        [1024, 1, 2, 1024, 'hostname:GROUP_BY:1', ''],
-        [1024, 1, 2, 1024, 'hostname:GROUP_BY:1', ''],
-        [1024, 1, 2, 1024, 'hostname:GROUP_BY:1', ''],
-        [1024, 1, 2, 1024, 'hostname:GROUP_BY:1', ''],
-        [1024, 1, 2, 1024, 'hostname:GROUP_BY:1', ''],
-        [1024, 1, 2, 1024, 'hostname:GROUP_BY:1', '']
+    const {deploymentConfigs} = this.props
+    const breadcrumbProps = {
+      navs: [
+        {name: 'HOME', url: '/'},
+        {name: 'APPLICATION', url: '/'},
+        {name: 'Deployment Configurations'}
       ]
     }
+    const titleProps = {icon: 'cloud', content: 'Application: Staging'}
+    let propsCreateBtn = {
+      as: NavLink,
+      to: '/deploy-config/create'
+    }
+
+    let rows = deploymentConfigs.map((dc) => {
+      const {envName, deploymentConfiguration: c} = dc
+      return [envName, c.memory, c.instances, c.cpus, c.diskSpaceInMb, c.constraints]
+    }
+    )
+
+    const tableProps = {
+      sortable: true,
+      headers: ['Env Name', 'Memory', 'Instances', 'Cpus', 'DiskSpaceInMb', 'Constraints'],
+      rows: rows
+    }
+    let noDeploymentConfigs = deploymentConfigs && deploymentConfigs.length === 0
     return (
       <div>
         <Breadcrumb {...breadcrumbProps} />
         <Title {...titleProps}/>
 
         <Segment basic floated='left'>
-          <Button icon='file' color='blue' content='Create'/>
+          <Button icon='file' color='blue' content='Create' {...propsCreateBtn}/>
         </Segment>
         <SearchComponent />
-        <Table {...tableProps} />
+        <Divider clearing/>
+        <Segment basic>
+          {noDeploymentConfigs &&
+          <Dimmer active inverted>
+            <Loader />
+          </Dimmer>}
+          <Table {...tableProps} />
+        </Segment>
       </div>
     )
   }

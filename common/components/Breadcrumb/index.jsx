@@ -1,10 +1,11 @@
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
 import {Breadcrumb as SUIBreadcrumb} from 'semantic-ui-react'
+import {NavLink} from 'react-router-dom'
 
 export default class BreadcrumbComponent extends Component {
   static propTypes = {
-    navPaths: PropTypes.array
+    navs: PropTypes.array
   }
 
   shouldComponentUpdate () {
@@ -12,15 +13,18 @@ export default class BreadcrumbComponent extends Component {
   }
 
   render () {
-    const {navPaths} = this.props
+    const {navs} = this.props
 
-    let breadcrumbs = navPaths.map((path, i, arr) => {
+    let breadcrumbs = navs.map(({name, url}, i, arr) => {
       if ((arr.length - 1) === i) {
-        return <SUIBreadcrumb.Section active>{path}</SUIBreadcrumb.Section>
+        return <SUIBreadcrumb.Section active>{name}</SUIBreadcrumb.Section>
       }
       return (
         <span>
-          <SUIBreadcrumb.Section link key={i}>{path}</SUIBreadcrumb.Section>
+          <SUIBreadcrumb.Section link key={i}>
+            <NavLink
+              to={url}>{name}</NavLink>
+          </SUIBreadcrumb.Section>
           <SUIBreadcrumb.Divider icon='right angle'/>
         </span>
       )
