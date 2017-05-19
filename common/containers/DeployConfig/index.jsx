@@ -21,7 +21,8 @@ class DeployConfigDetail extends Component {
   handleChange = (e, {value}) => this.setState({value})
 
   componentDidMount () {
-    this.props.getDeploymentConfig()
+    const {appName, envName} = this.props.match.params
+    this.props.getDeploymentConfig(appName, envName)
   }
 
   InputExampleRightLabeledBasic = () => (
@@ -49,14 +50,14 @@ class DeployConfigDetail extends Component {
     const {SERVICE_NAME, SERVICE_TAGS, SPRING_PROFILES_ACTIVE, SERVICE_REGION, SERVICE_CHECK_HTTP, SERVICE_CHECK_INTERVAL, SERVICE_CHECK_TIMEOUT, spring_cloud_client_hostname} = envVariables
     const {protocol, command, gracePeriodSeconds, intervalSeconds, timeoutSeconds, maxConsecutiveFailures} = healthChecks
 
-    const envName = this.props.match.params.envName || 'Create'
+    const {envName = 'Create', appName} = this.props.match.params
 
     const breadcrumbProps = {
       navs: [
         {name: 'HOME', url: '/'},
         {name: 'APPLICATION', url: '/'},
-        {name: 'Deployment Configurations', url: '/'},
-        {name: envName, url: '/'}
+        {name: 'Deployment Configurations', url: `/apps/${appName}/deploy-configs`},
+        {name: envName}
       ]
     }
     const titleProps = {icon: 'cloud', content: isEditMode ? 'Create' : envName}
@@ -272,9 +273,9 @@ function mapStateToProps (state) {
 
 function mapDispatchToProps (dispatch) {
   return {
-    getDeploymentConfig: async() => {
-      let result = await dispatch(GET_DEPLOYMENT_CONFIG)
-      dispatch(result)
+    getDeploymentConfig: async (appName, envName) => {
+      let result = await dispatch(GET_DEPLOYMENT_CONFIG(appName, envName))
+      return dispatch(result)
     }
   }
 }

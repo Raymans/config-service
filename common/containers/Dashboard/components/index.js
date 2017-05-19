@@ -7,11 +7,12 @@ import {NavLink} from 'react-router-dom'
 
 export default class DashboardComponent extends Component {
   static propTypes = {
-    deploymentConfigs: PropTypes.array
+    deploymentConfigs: PropTypes.array,
+    appName: PropTypes.string
   }
 
   render () {
-    const {deploymentConfigs} = this.props
+    const {deploymentConfigs, appName} = this.props
     const breadcrumbProps = {
       navs: [
         {name: 'HOME', url: '/'},
@@ -19,10 +20,10 @@ export default class DashboardComponent extends Component {
         {name: 'Deployment Configurations'}
       ]
     }
-    const titleProps = {icon: 'cloud', content: 'Application: Staging'}
+    const titleProps = {icon: 'cloud', content: `Application: ${appName}`}
     let propsCreateBtn = {
       as: NavLink,
-      to: '/deploy-config/create'
+      to: `/apps/${appName}/deploy-configs/create`
     }
 
     let rows = deploymentConfigs.map((dc) => {
@@ -34,7 +35,8 @@ export default class DashboardComponent extends Component {
     const tableProps = {
       sortable: true,
       headers: ['Env Name', 'Memory', 'Instances', 'Cpus', 'DiskSpaceInMb', 'Constraints'],
-      rows: rows
+      rows: rows,
+      prefixDetailLink: `/apps/${appName}/deploy-configs`
     }
     let noDeploymentConfigs = deploymentConfigs && deploymentConfigs.length === 0
     return (

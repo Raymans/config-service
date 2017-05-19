@@ -78,16 +78,17 @@ class App extends Component {
       isLoggedIn,
       logout,
       toggleSidebar,
-      location,
+      // location,
       isMobile
     } = this.props
 
     // must be refactored, if one of your route looks like `/api/users/:id`
     // get currentRoute
-    const matchedRoutes = appRouting.filter(a => a.path === location.pathname)
-    const currentRoute = matchedRoutes[0] || {}
-    // title for Header
-    const title = currentRoute.name || '404'
+    // TODO title for Header
+    // const matchedRoutes = appRouting.filter(a => a.path === location.pathname)
+    // const currentRoute = matchedRoutes[0] || {}
+    // const title = currentRoute.name || ''
+    const title = 'Apps Dashboard'
     // routing for sidebar menu
     const sidebarRouting = appRouting.filter(a => a.sidebarVisible).map(a => {
       let {path, name, icon, external, strict, exact} = a

@@ -14,15 +14,6 @@ const DeployConfigEdit = props => {
 
 export const appRouting = [
   {
-    path: '/',
-    icon: 'newspaper',
-    name: 'Deploy Configs',
-    exact: true,
-    sidebarVisible: true,
-    tag: RouteAuth,
-    component: Dashboard
-  },
-  {
     path: '/application',
     name: 'Application',
     exact: true,
@@ -34,18 +25,8 @@ export const appRouting = [
   {
     path: '/inbox',
     name: 'Resources',
-    exact: true,
-    icon: 'comments outline',
-    sidebarVisible: true,
     tag: RouteAuth,
     component: Inbox
-  },
-  {
-    external: true,
-    path: 'https://github.com/Metnew/react-semantic.ui-starter',
-    icon: 'github',
-    name: 'Properties',
-    sidebarVisible: true
   },
   {
     path: '/auth',
@@ -54,16 +35,22 @@ export const appRouting = [
     component: Login
   },
   {
-    path: '/deploy-config/create',
+    path: '/apps/:appName/deploy-configs/create',
     name: 'Deploy Config - Create',
     tag: Route,
     component: DeployConfigEdit
   },
   {
-    path: '/deploy-config/:envName',
+    path: '/apps/:appName/deploy-configs/:envName',
     name: 'Deploy Config Detail',
     tag: Route,
     component: DeployConfig
+  },
+  {
+    path: '/apps/:appName/deploy-configs',
+    name: 'Deploy Configs',
+    tag: RouteAuth,
+    component: Dashboard
   }
 
 ]
@@ -91,7 +78,7 @@ export const Routing = authCheck => {
     <App>
       <Switch>
         {routesRendered}
-        <Redirect to="/"/>
+        <Redirect to="/apps/springmaven/deploy-configs"/>
       </Switch>
     </App>
   )

@@ -6,7 +6,8 @@ import {NavLink} from 'react-router-dom'
 export default class TableComponent extends Component {
   static propTypes = {
     headers: PropTypes.array,
-    rows: PropTypes.array
+    rows: PropTypes.array,
+    prefixDetailLink: PropTypes.string
 
   }
 
@@ -15,7 +16,7 @@ export default class TableComponent extends Component {
   }
 
   render () {
-    const {headers, rows, ...tableProps} = this.props
+    const {headers, rows, prefixDetailLink, ...tableProps} = this.props
 
     let tableHeaders = headers.map((header, i) =>
       <Table.HeaderCell key={i}>{header}</Table.HeaderCell>
@@ -27,7 +28,7 @@ export default class TableComponent extends Component {
           return (
             <Table.Cell textAlign={textAlign} key={j}>
               <NavLink
-                to={`/deploy-config/${row[0]}`}>{data}</NavLink>
+                to={`${prefixDetailLink}/${row[0]}`}>{data}</NavLink>
             </Table.Cell>
           )
         }

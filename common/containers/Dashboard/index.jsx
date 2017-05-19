@@ -7,16 +7,19 @@ import {GET_DEPLOYMENT_CONFIGS} from 'actions/dashboard'
 class Dashboard extends Component {
   static propTypes = {
     deploymentConfigs: PropTypes.array,
-    getDeploymentConfigs: PropTypes.func.isRequired
+    getDeploymentConfigs: PropTypes.func.isRequired,
+    match: PropTypes.object
   }
 
   componentDidMount () {
-    this.props.getDeploymentConfigs()
+    const {appName} = this.props.match.params
+    this.props.getDeploymentConfigs(appName)
   }
 
   render () {
-    let {deploymentConfigs} = this.props
-    let props = {deploymentConfigs}
+    let {deploymentConfigs, match} = this.props
+    const appName = match.params.appName
+    let props = {deploymentConfigs, appName}
 
     return (
       <div>

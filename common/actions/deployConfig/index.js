@@ -5,10 +5,12 @@ import {resultOK} from 'api/utils'
 export const GET_DEPLOYMENT_CONFIG_SUCCESS = 'GET_DEPLOYMENT_CONFIG_SUCCESS'
 export const GET_DEPLOYMENT_CONFIG_FAIL = 'GET_DEPLOYMENT_CONFIG_FAIL'
 
-export const GET_DEPLOYMENT_CONFIG = async() => {
-  let result = await getDeploymentConfigAPI()
-  if (!resultOK(result)) {
-    return {type: GET_DEPLOYMENT_CONFIG_FAIL, error: result.data}
+export function GET_DEPLOYMENT_CONFIG (appName, envName) {
+  return async () => {
+    let result = await getDeploymentConfigAPI(appName, envName)
+    if (!resultOK(result)) {
+      return {type: GET_DEPLOYMENT_CONFIG_FAIL, error: result.data}
+    }
+    return {type: GET_DEPLOYMENT_CONFIG_SUCCESS, result: result.data}
   }
-  return {type: GET_DEPLOYMENT_CONFIG_SUCCESS, result: result.data}
 }
