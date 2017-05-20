@@ -1,4 +1,4 @@
-import {getDeploymentConfigsAPI} from 'api/StatisticsSvc'
+import {getDeploymentConfigsAPI} from 'api/DeployConfigSvc'
 import {resultOK} from 'api/utils'
 
 // define action types

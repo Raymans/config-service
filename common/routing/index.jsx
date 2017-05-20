@@ -1,7 +1,7 @@
 import React from 'react'
 import {Route, Redirect, Switch} from 'react-router'
 import {createBrowserHistory} from 'history'
-import {App, Inbox, Dashboard, Login, DeployConfig} from 'containers'
+import {App, Inbox, DeployConfigs, Login, DeployConfig} from 'containers'
 import {RouteAuth} from 'components'
 
 export const history = getHistory()
@@ -50,7 +50,7 @@ export const appRouting = [
     path: '/apps/:appName/deploy-configs',
     name: 'Deploy Configs',
     tag: RouteAuth,
-    component: Dashboard
+    component: DeployConfigs
   }
 
 ]

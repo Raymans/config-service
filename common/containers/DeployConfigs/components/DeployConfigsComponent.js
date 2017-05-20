@@ -5,7 +5,7 @@ import {Breadcrumb, Title, Table} from 'components'
 import SearchComponent from 'components/common/SearchComponent'
 import {NavLink} from 'react-router-dom'
 
-export default class DashboardComponent extends Component {
+export default class DeployConfigsComponent extends Component {
   static propTypes = {
     deploymentConfigs: PropTypes.array,
     appName: PropTypes.string

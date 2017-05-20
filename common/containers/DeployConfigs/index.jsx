@@ -1,10 +1,10 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import PropTypes from 'prop-types'
-import DashboardComponent from './components'
-import {GET_DEPLOYMENT_CONFIGS} from 'actions/dashboard'
+import DeployConfigsComponent from './components/DeployConfigsComponent'
+import {GET_DEPLOYMENT_CONFIGS} from 'actions/deployConfigs'
 
-class Dashboard extends Component {
+class DeployConfigs extends Component {
   static propTypes = {
     deploymentConfigs: PropTypes.array,
     getDeploymentConfigs: PropTypes.func.isRequired,
@@ -23,14 +23,14 @@ class Dashboard extends Component {
 
     return (
       <div>
-        <DashboardComponent {...props} />
+        <DeployConfigsComponent {...props} />
       </div>
     )
   }
 }
 
 function mapStateToProps (state) {
-  return {deploymentConfigs: state.dashboard.deploymentConfigs}
+  return {deploymentConfigs: state.deployConfigs.deploymentConfigs}
 }
 
 function mapDispatchToProps (dispatch) {
@@ -42,4 +42,4 @@ function mapDispatchToProps (dispatch) {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Dashboard)
+export default connect(mapStateToProps, mapDispatchToProps)(DeployConfigs)

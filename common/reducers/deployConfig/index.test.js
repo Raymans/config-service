@@ -1,5 +1,5 @@
 /* eslint-disable */
-import {dashboard as reducer, initialState} from 'reducers/dashboard'
+import {deployConfigs as reducer, initialState} from 'reducers/deployConfigs'
 import * as actions from 'actions'
 
 

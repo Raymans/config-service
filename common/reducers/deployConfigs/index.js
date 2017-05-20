@@ -1,11 +1,11 @@
-import { GET_DEPLOYMENT_CONFIGS_SUCCESS, GET_DEPLOYMENT_CONFIGS_FAIL } from 'actions/dashboard'
+import { GET_DEPLOYMENT_CONFIGS_SUCCESS, GET_DEPLOYMENT_CONFIGS_FAIL } from 'actions/deployConfigs'
 import { LOCATION_CHANGE } from 'actions/common'
 
 export const initialState = {
   deploymentConfigs: []
 }
 
-export function dashboard (state = initialState, action) {
+export function deployConfigs (state = initialState, action) {
   switch (action.type) {
     case GET_DEPLOYMENT_CONFIGS_SUCCESS:
       return {
