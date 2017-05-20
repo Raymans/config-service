@@ -4,13 +4,14 @@ import {Icon, Menu, Header, Grid, Segment, Form, Input, Button, Label, Divider} 
 import PropTypes from 'prop-types'
 import {Breadcrumb, Title} from 'components'
 import DetailGridComponent from './components/DetailGridComponent'
-import {GET_DEPLOYMENT_CONFIG} from 'actions/deployConfig'
+import {GET_DEPLOYMENT_CONFIG, UPDATE_INPUT_FIELD} from 'actions/deployConfig'
 
 class DeployConfigDetail extends Component {
   static propTypes = {
     isEditMode: PropTypes.bool,
     deploymentConfig: PropTypes.object,
     getDeploymentConfig: PropTypes.func.isRequired,
+    updateInputField: PropTypes.func.isRequired,
     match: PropTypes.object
 
   }
@@ -18,7 +19,13 @@ class DeployConfigDetail extends Component {
 
   handleItemClick = (e, {name}) => this.setState({activeItem: name})
 
-  handleChange = (e, {value}) => this.setState({value})
+  handleChange = (e, {name, value}) => {
+    this.props.updateInputField(name, value)
+  }
+
+  handleSubmit = e => {
+    e.preventDefault()
+  }
 
   componentDidMount () {
     const {appName, envName} = this.props.match.params
@@ -34,17 +41,17 @@ class DeployConfigDetail extends Component {
   )
 
   render () {
-    const {value, activeItem} = this.state
+    const {activeItem} = this.state
     const {isEditMode, deploymentConfig = {}} = this.props
     const {
-      memory, instances, cpus, diskSpaceInMb, constraints,
+      memory, instances, cpus, diskSpaceInMb, constraints, consulUrl,
       nexusConfiguration: nexus = {},
       dockerConfiguration: docker = {},
       marathonConfiguration: marathon = {},
       envVariables = {},
       healthChecks = {}
     } = deploymentConfig
-    const {groupId, artifactId, repositoryName, artifactType} = nexus
+    const {groupId, artifactId, repositoryName, artifactType, baseUrl} = nexus
     const {dockerRegistryUrl, imageName, pullImageOnEveryLaunch, networkType} = docker
     const {marathonUrl, marathonUser, marathonPassword} = marathon
     const {SERVICE_NAME, SERVICE_TAGS, SPRING_PROFILES_ACTIVE, SERVICE_REGION, SERVICE_CHECK_HTTP, SERVICE_CHECK_INTERVAL, SERVICE_CHECK_TIMEOUT, spring_cloud_client_hostname} = envVariables
@@ -157,29 +164,26 @@ class DeployConfigDetail extends Component {
           </Grid.Column>
 
           <Grid.Column stretched width={12}>
-            <Form>
+            <Form onSubmit={this.handleSubmit}>
               <Segment>
                 <Label as='a' color='red' size="large" ribbon>Overview</Label>
                 <Form.Group widths='equal'>
-                  <Form.Input label='memory' placeholder='Memory' required/>
-                  <Form.Input label='instances' placeholder='instances' required/>
+                  <Form.Input label='memory' placeholder='Memory' name="memory" value={memory}
+                              onChange={this.handleChange} required/>
+                  <Form.Input label='instances' placeholder='instances' name="instances" value={instances}
+                              onChange={this.handleChange} required/>
                 </Form.Group>
                 <Form.Group widths='equal'>
-                  <Form.Input label='cpus' placeholder='cpus' required/>
+                  <Form.Input label='cpus' placeholder='cpus' name="cpus" value={cpus}
+                              onChange={this.handleChange} required/>
                   <Form.Input control={this.InputExampleRightLabeledBasic} label='diskSpace' placeholder='diskSpace'
-                              required/>
+                              name="diskSpace" value={diskSpaceInMb}
+                              onChange={this.handleChange} required/>
                 </Form.Group>
-
-                <Form.Input label='constraints' placeholder='constraints' required/>
-                <Form.Input label='consulUrl' placeholder='consulUrl'/>
-                <Form.Group inline>
-                  <label>Size</label>
-                  <Form.Radio label='Small' value='sm' checked={value === 'sm'} onChange={this.handleChange}/>
-                  <Form.Radio label='Medium' value='md' checked={value === 'md'} onChange={this.handleChange}/>
-                  <Form.Radio label='Large' value='lg' checked={value === 'lg'} onChange={this.handleChange}/>
-                </Form.Group>
-                <Form.TextArea label='About' placeholder='Tell us more about you...'/>
-                <Form.Checkbox label='I agree to the Terms and Conditions'/>
+                <Form.Input label='constraints' placeholder='constraints' name="constraints" value={constraints}
+                            onChange={this.handleChange} required/>
+                <Form.Input label='consulUrl' placeholder='consulUrl' name="consulUrl" value={consulUrl}
+                            onChange={this.handleChange} required/>
               </Segment>
               <Header/>
               <Header as='h3'>
@@ -187,13 +191,20 @@ class DeployConfigDetail extends Component {
                 <Header.Content>Nexus</Header.Content>
               </Header>
               <Segment>
-                <Form.Input label='groupId' placeholder='groupId' required/>
-                <Form.Input label='artifactId' placeholder='artifactId' required/>
-                <Form.Input label='repositoryName' placeholder='repositoryName' required/>
-                <Form.Input label='artifactType' placeholder='artifactType' required/>
-                <Form.Input label='baseUrl' placeholder='baseUrl'/>
+                <Form.Input label='groupId' placeholder='groupId' name="nexusConfiguration.groupId" value={groupId}
+                            onChange={this.handleChange} required/>
+                <Form.Input label='artifactId' placeholder='artifactId' name="nexusConfiguration.artifactId"
+                            value={artifactId}
+                            onChange={this.handleChange} required/>
+                <Form.Input label='repositoryName' placeholder='repositoryName' name="nexusConfiguration.repositoryName"
+                            value={repositoryName}
+                            onChange={this.handleChange} required/>
+                <Form.Input label='artifactType' placeholder='artifactType' name="nexusConfiguration.artifactType"
+                            value={artifactType}
+                            onChange={this.handleChange} required/>
+                <Form.Input label='baseUrl' placeholder='baseUrl' name="nexusConfiguration.baseUrl" value={baseUrl}
+                            onChange={this.handleChange} required/>
               </Segment>
-
               <Header as='h3'>
                 <Icon name='plug'/>
                 <Header.Content>Docker</Header.Content>
@@ -273,10 +284,12 @@ function mapStateToProps (state) {
 
 function mapDispatchToProps (dispatch) {
   return {
-    getDeploymentConfig: async (appName, envName) => {
+    getDeploymentConfig: async(appName, envName) => {
       let result = await dispatch(GET_DEPLOYMENT_CONFIG(appName, envName))
       return dispatch(result)
-    }
+    },
+    updateInputField: (name, value) =>
+      dispatch(UPDATE_INPUT_FIELD(name, value))
   }
 }
 
