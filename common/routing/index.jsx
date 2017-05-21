@@ -8,7 +8,7 @@ export const history = getHistory()
 
 const DeployConfigEdit = props => {
   return (
-    <DeployConfig isEditMode {...props} />
+    <DeployConfig isCreateMode {...props} />
   )
 }
 

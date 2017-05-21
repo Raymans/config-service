@@ -8,6 +8,9 @@ export const UPDATE_DEPLOYMENT_CONFIG_SUCCESS = 'UPDATE_DEPLOYMENT_CONFIG_SUCCES
 
 export const CHANGE_INPUT_FILED = 'CHANGE_INPUT_FILED'
 
+export const CHANGE_TO_EDIT_MODE = 'CHANGE_TO_EDIT_MODE'
+export const CHANGE_TO_VIEW_MODE = 'CHANGE_TO_VIEW_MODE'
+
 export function GET_DEPLOYMENT_CONFIG (appName, envName) {
   return async() => {
     let result = await getDeploymentConfigAPI(appName, envName)
@@ -29,4 +32,11 @@ export function UPDATE_DEPLOYMENT_CONFIG (appName, envName) {
     }
     return {type: GET_DEPLOYMENT_CONFIG_SUCCESS, result: result.data}
   }
+}
+
+export const CHANGE_MODE = (isEditMode) => {
+  if (isEditMode) {
+    return ({type: CHANGE_TO_EDIT_MODE})
+  }
+  return ({type: CHANGE_TO_VIEW_MODE})
 }

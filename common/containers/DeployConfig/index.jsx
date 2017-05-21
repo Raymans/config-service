@@ -1,21 +1,24 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
-import {Icon, Menu, Header, Grid, Segment, Form, Input, Button, Label, Divider} from 'semantic-ui-react'
+import {Menu, Grid, Segment, Form, Input, Button, Label, Divider} from 'semantic-ui-react'
 import PropTypes from 'prop-types'
 import {Breadcrumb, Title} from 'components'
 import DetailGridComponent from './components/DetailGridComponent'
-import {GET_DEPLOYMENT_CONFIG, UPDATE_INPUT_FIELD} from 'actions/deployConfig'
+import {GET_DEPLOYMENT_CONFIG, UPDATE_INPUT_FIELD, CHANGE_MODE} from 'actions/deployConfig'
 
 class DeployConfigDetail extends Component {
   static propTypes = {
+    isCreateMode: PropTypes.bool,
     isEditMode: PropTypes.bool,
     deploymentConfig: PropTypes.object,
     getDeploymentConfig: PropTypes.func.isRequired,
     updateInputField: PropTypes.func.isRequired,
+    enterEditMode: PropTypes.func.isRequired,
     match: PropTypes.object
-
   }
   state = {activeItem: 'basic'}
+
+  handleEditClick = () => this.props.enterEditMode()
 
   handleItemClick = (e, {name}) => this.setState({activeItem: name})
 
@@ -42,7 +45,7 @@ class DeployConfigDetail extends Component {
 
   render () {
     const {activeItem} = this.state
-    const {isEditMode, deploymentConfig = {}} = this.props
+    const {isEditMode, isCreateMode, deploymentConfig = {}} = this.props
     const {
       memory, instances, cpus, diskSpaceInMb, constraints, consulUrl,
       nexusConfiguration: nexus = {},
@@ -68,7 +71,7 @@ class DeployConfigDetail extends Component {
       ]
     }
     const titleProps = {icon: 'cloud', content: isEditMode ? 'Create' : envName}
-    if (!isEditMode) {
+    if (!isEditMode && !isCreateMode) {
       const gridsProps = {
         overview: {
           title: 'Overview',
@@ -127,12 +130,11 @@ class DeployConfigDetail extends Component {
                 <Menu.Item name='healthChecks' active={activeItem === 'healthChecks'} onClick={this.handleItemClick}/>
               </Menu>
             </Grid.Column>
-
             <Grid.Column width={12}>
               <Button.Group floated='right'>
                 <Button icon="delete" color='red' content='Delete'/>
                 <Button.Or />
-                <Button icon="file" color='blue' content='Edit'/>
+                <Button icon="file" color='blue' content='Edit' onClick={this.handleEditClick}/>
               </Button.Group>
               <Divider fitted clearing/>
               <DetailGridComponent {...gridsProps.overview}/>
@@ -185,12 +187,8 @@ class DeployConfigDetail extends Component {
                 <Form.Input label='consulUrl' placeholder='consulUrl' name="consulUrl" value={consulUrl}
                             onChange={this.handleChange} required/>
               </Segment>
-              <Header/>
-              <Header as='h3'>
-                <Icon name='plug'/>
-                <Header.Content>Nexus</Header.Content>
-              </Header>
               <Segment>
+                <Label as='a' color='grey' size="large" ribbon>Nexus</Label>
                 <Form.Input label='groupId' placeholder='groupId' name="nexusConfiguration.groupId" value={groupId}
                             onChange={this.handleChange} required/>
                 <Form.Input label='artifactId' placeholder='artifactId' name="nexusConfiguration.artifactId"
@@ -205,11 +203,8 @@ class DeployConfigDetail extends Component {
                 <Form.Input label='baseUrl' placeholder='baseUrl' name="nexusConfiguration.baseUrl" value={baseUrl}
                             onChange={this.handleChange} required/>
               </Segment>
-              <Header as='h3'>
-                <Icon name='plug'/>
-                <Header.Content>Docker</Header.Content>
-              </Header>
               <Segment>
+                <Label as='a' color='blue' size="large" ribbon>Docker</Label>
                 <Form.Input label='imageName' placeholder='imageName' required/>
                 <Form.Input label='dockerRegistryUrl' placeholder='dockerRegistryUrl' required/>
                 <Form.Input label='pullImageOnEveryLaunch' placeholder='pullImageOnEveryLaunch' required/>
@@ -222,21 +217,15 @@ class DeployConfigDetail extends Component {
 
               </Segment>
 
-              <Header as='h3'>
-                <Icon name='plug'/>
-                <Header.Content>Marathon</Header.Content>
-              </Header>
               <Segment>
+                <Label as='a' color='olive' size="large" ribbon>Marathon</Label>
                 <Form.Input label='marathonUrl' placeholder='marathonUrl' required/>
                 <Form.Input label='marathonUser' placeholder='marathonUser' required/>
                 <Form.Input label='marathonPassword' placeholder='marathonPassword' required/>
               </Segment>
 
-              <Header as='h3'>
-                <Icon name='plug'/>
-                <Header.Content>Env Variables</Header.Content>
-              </Header>
               <Segment>
+                <Label as='a' color='green' size="large" ribbon>Env Variables</Label>
                 <Form.Input label='SERVICE_NAME' placeholder='SERVICE_NAME' required/>
                 <Form.Input label='SERVICE_TAGS' placeholder='SERVICE_TAGS' required/>
                 <Form.Input label='SPRING_PROFILES_ACTIVE' placeholder='SPRING_PROFILES_ACTIVE' required/>
@@ -250,12 +239,9 @@ class DeployConfigDetail extends Component {
                             required/>
               </Segment>
 
-              <Header as='h3'>
-                <Icon name='plug'/>
-                <Header.Content>Health Checks</Header.Content>
-              </Header>
               <Segment>
                 <Segment>
+                  <Label as='a' color='red' size="large" ribbon>Health Checks</Label>
                   <Form.Input label='protocol' placeholder='protocol' required/>
                   <Form.Input label='command' placeholder='command' required/>
                   <Form.Input label='gracePeriodSeconds' placeholder='gracePeriodSeconds' required/>
@@ -279,7 +265,10 @@ class DeployConfigDetail extends Component {
 }
 
 function mapStateToProps (state) {
-  return {deploymentConfig: state.deployConfig.deploymentConfig}
+  return {
+    deploymentConfig: state.deployConfig.deploymentConfig,
+    isEditMode: state.deployConfig.isEditMode
+  }
 }
 
 function mapDispatchToProps (dispatch) {
@@ -289,7 +278,9 @@ function mapDispatchToProps (dispatch) {
       return dispatch(result)
     },
     updateInputField: (name, value) =>
-      dispatch(UPDATE_INPUT_FIELD(name, value))
+      dispatch(UPDATE_INPUT_FIELD(name, value)),
+    enterEditMode: () =>
+      dispatch(CHANGE_MODE(true))
   }
 }
 
