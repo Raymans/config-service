@@ -31,6 +31,9 @@ class DeployConfigDetail extends Component {
   }
 
   componentDidMount () {
+    if (this.props.isCreateMode) {
+      return
+    }
     const {appName, envName} = this.props.match.params
     this.props.getDeploymentConfig(appName, envName)
   }
@@ -55,9 +58,11 @@ class DeployConfigDetail extends Component {
       healthChecks = {}
     } = deploymentConfig
     const {groupId, artifactId, repositoryName, artifactType, baseUrl} = nexus
-    const {dockerRegistryUrl, imageName, pullImageOnEveryLaunch, networkType} = docker
+    const {dockerRegistryUrl, imageName, pullImageOnEveryLaunch, networkType, hostPort, containerPort} = docker
     const {marathonUrl, marathonUser, marathonPassword} = marathon
-    const {SERVICE_NAME, SERVICE_TAGS, SPRING_PROFILES_ACTIVE, SERVICE_REGION, SERVICE_CHECK_HTTP, SERVICE_CHECK_INTERVAL, SERVICE_CHECK_TIMEOUT, spring_cloud_client_hostname} = envVariables
+    const {
+      SERVICE_NAME, SERVICE_TAGS, SPRING_PROFILES_ACTIVE, SERVICE_REGION, SERVICE_FAULTZONE, SERVICE_CHECK_HTTP, SERVICE_CHECK_INTERVAL,
+      SERVICE_CHECK_TIMEOUT, spring_cloud_client_hostname: springCloudClientHostname, 'eureka_instance_non-secure-port': eurekaInstanceNonSecurePort} = envVariables
     const {protocol, command, gracePeriodSeconds, intervalSeconds, timeoutSeconds, maxConsecutiveFailures} = healthChecks
 
     const {envName = 'Create', appName} = this.props.match.params
@@ -103,8 +108,8 @@ class DeployConfigDetail extends Component {
             SERVICE_CHECK_HTTP,
             SERVICE_CHECK_INTERVAL,
             SERVICE_CHECK_TIMEOUT,
-            spring_cloud_client_hostname,
-            'eureka_instance_non-secure-port': envVariables['eureka_instance_non-secure-port']
+            springCloudClientHostname,
+            eurekaInstanceNonSecurePort
           },
           titleColor: 'green'
         },
@@ -118,7 +123,6 @@ class DeployConfigDetail extends Component {
         <div>
           <Breadcrumb {...breadcrumbProps} />
           <Title {...titleProps}/>
-
           <Grid>
             <Grid.Column width={2}>
               <Menu fluid vertical tabular>
@@ -152,7 +156,6 @@ class DeployConfigDetail extends Component {
       <div>
         <Breadcrumb {...breadcrumbProps} />
         <Title {...titleProps}/>
-
         <Grid>
           <Grid.Column width={2}>
             <Menu fluid vertical tabular>
@@ -164,7 +167,6 @@ class DeployConfigDetail extends Component {
               <Menu.Item name='healthChecks' active={activeItem === 'healthChecks'} onClick={this.handleItemClick}/>
             </Menu>
           </Grid.Column>
-
           <Grid.Column stretched width={12}>
             <Form onSubmit={this.handleSubmit}>
               <Segment>
@@ -205,49 +207,74 @@ class DeployConfigDetail extends Component {
               </Segment>
               <Segment>
                 <Label as='a' color='blue' size="large" ribbon>Docker</Label>
-                <Form.Input label='imageName' placeholder='imageName' required/>
-                <Form.Input label='dockerRegistryUrl' placeholder='dockerRegistryUrl' required/>
-                <Form.Input label='pullImageOnEveryLaunch' placeholder='pullImageOnEveryLaunch' required/>
-                <Form.Input label='networkType' placeholder='networkType' required/>
+                <Form.Input label='imageName' placeholder='imageName' name="dockerConfiguration.imageName" value={imageName}
+                            onChange={this.handleChange} required/>
+                <Form.Input label='dockerRegistryUrl' placeholder='dockerRegistryUrl' name="dockerConfiguration.dockerRegistryUrl" value={dockerRegistryUrl}
+                            onChange={this.handleChange} required/>
+                <Form.Input label='pullImageOnEveryLaunch' placeholder='pullImageOnEveryLaunch' name="dockerConfiguration.pullImageOnEveryLaunch" value={pullImageOnEveryLaunch}
+                            onChange={this.handleChange} required/>
+                <Form.Input label='networkType' placeholder='networkType' name="dockerConfiguration.networkType" value={networkType}
+                            onChange={this.handleChange} required/>
                 <Segment>
-                  <Form.Input label='containerPort' placeholder='containerPort' required/>
-                  <Form.Input label='hostPort' placeholder='hostPort' required/>
-                  <Form.Input label='protocol' placeholder='protocol' required/>
+                  <Form.Input label='containerPort' placeholder='containerPort' name="dockerConfiguration.containerPort" value={containerPort}
+                              onChange={this.handleChange} required/>
+                  <Form.Input label='hostPort' placeholder='hostPort' name="dockerConfiguration.hostPort" value={hostPort}
+                              onChange={this.handleChange} required/>
+                  <Form.Input label='protocol' placeholder='protocol' name="dockerConfiguration.protocol" value={protocol}
+                              onChange={this.handleChange} required/>
                 </Segment>
 
               </Segment>
 
               <Segment>
                 <Label as='a' color='olive' size="large" ribbon>Marathon</Label>
-                <Form.Input label='marathonUrl' placeholder='marathonUrl' required/>
-                <Form.Input label='marathonUser' placeholder='marathonUser' required/>
-                <Form.Input label='marathonPassword' placeholder='marathonPassword' required/>
+                <Form.Input label='marathonUrl' placeholder='marathonUrl' name="marathonConfiguration.marathonUrl" value={marathonUrl}
+                            onChange={this.handleChange} required/>
+                <Form.Input label='marathonUser' placeholder='marathonUser' name="marathonConfiguration.marathonUser" value={marathonUser}
+                            onChange={this.handleChange} required/>
+                <Form.Input label='marathonPassword' placeholder='marathonPassword' name="marathonConfiguration.marathonPassword" value={marathonPassword}
+                            onChange={this.handleChange} required/>
               </Segment>
 
               <Segment>
                 <Label as='a' color='green' size="large" ribbon>Env Variables</Label>
-                <Form.Input label='SERVICE_NAME' placeholder='SERVICE_NAME' required/>
-                <Form.Input label='SERVICE_TAGS' placeholder='SERVICE_TAGS' required/>
-                <Form.Input label='SPRING_PROFILES_ACTIVE' placeholder='SPRING_PROFILES_ACTIVE' required/>
-                <Form.Input label='SERVICE_REGION' placeholder='SERVICE_REGION' required/>
-                <Form.Input label='SERVICE_FAULTZONE' placeholder='SERVICE_FAULTZONE' required/>
-                <Form.Input label='SERVICE_CHECK_HTTP' placeholder='SERVICE_CHECK_HTTP' required/>
-                <Form.Input label='SERVICE_CHECK_INTERVAL' placeholder='SERVICE_CHECK_INTERVAL' required/>
-                <Form.Input label='SERVICE_CHECK_TIMEOUT' placeholder='SERVICE_CHECK_TIMEOUT' required/>
-                <Form.Input label='spring_cloud_client_hostname' placeholder='spring_cloud_client_hostname' required/>
-                <Form.Input label='eureka_instance_non-secure-port' placeholder='eureka_instance_non-secure-port'
-                            required/>
+                <Form.Input label='SERVICE_NAME' placeholder='SERVICE_NAME' name="envVariables.SERVICE_NAME" value={SERVICE_NAME}
+                            onChange={this.handleChange} required/>
+                <Form.Input label='SERVICE_TAGS' placeholder='SERVICE_TAGS' name="envVariables.SERVICE_TAGS" value={SERVICE_TAGS}
+                            onChange={this.handleChange} required/>
+                <Form.Input label='SPRING_PROFILES_ACTIVE' placeholder='SPRING_PROFILES_ACTIVE' name="envVariables.SPRING_PROFILES_ACTIVE" value={SPRING_PROFILES_ACTIVE}
+                            onChange={this.handleChange} required/>
+                <Form.Input label='SERVICE_REGION' placeholder='SERVICE_REGION' name="envVariables.SERVICE_REGION" value={SERVICE_REGION}
+                            onChange={this.handleChange} required/>
+                <Form.Input label='SERVICE_FAULTZONE' placeholder='SERVICE_FAULTZONE' name="envVariables.SERVICE_FAULTZONE" value={SERVICE_FAULTZONE}
+                            onChange={this.handleChange} required/>
+                <Form.Input label='SERVICE_CHECK_HTTP' placeholder='SERVICE_CHECK_HTTP' name="envVariables.SERVICE_CHECK_HTTP" value={SERVICE_CHECK_HTTP}
+                            onChange={this.handleChange} required/>
+                <Form.Input label='SERVICE_CHECK_INTERVAL' placeholder='SERVICE_CHECK_INTERVAL' name="envVariables.SERVICE_CHECK_INTERVAL" value={SERVICE_CHECK_INTERVAL}
+                            onChange={this.handleChange} required/>
+                <Form.Input label='SERVICE_CHECK_TIMEOUT' placeholder='SERVICE_CHECK_TIMEOUT' name="envVariables.SERVICE_CHECK_TIMEOUT" value={SERVICE_CHECK_TIMEOUT}
+                            onChange={this.handleChange} required/>
+                <Form.Input label='spring_cloud_client_hostname' placeholder='spring_cloud_client_hostname' name="envVariables.spring_cloud_client_hostname" value={springCloudClientHostname}
+                            onChange={this.handleChange} required/>
+                <Form.Input label='eureka_instance_non-secure-port' placeholder='eureka_instance_non-secure-port' name="envVariables.eureka_instance_non-secure-port" value={eurekaInstanceNonSecurePort}
+                            onChange={this.handleChange} required/>
               </Segment>
 
               <Segment>
                 <Segment>
                   <Label as='a' color='red' size="large" ribbon>Health Checks</Label>
-                  <Form.Input label='protocol' placeholder='protocol' required/>
-                  <Form.Input label='command' placeholder='command' required/>
-                  <Form.Input label='gracePeriodSeconds' placeholder='gracePeriodSeconds' required/>
-                  <Form.Input label='intervalSeconds' placeholder='intervalSeconds' required/>
-                  <Form.Input label='timeoutSeconds' placeholder='timeoutSeconds' required/>
-                  <Form.Input label='maxConsecutiveFailures' placeholder='maxConsecutiveFailures' required/>
+                  <Form.Input label='protocol' placeholder='protocol' name="marathonConfiguration.protocol" value={protocol}
+                              onChange={this.handleChange} required/>
+                  <Form.Input label='command' placeholder='command' name="marathonConfiguration.command" value={command}
+                              onChange={this.handleChange} required/>
+                  <Form.Input label='gracePeriodSeconds' placeholder='gracePeriodSeconds' name="marathonConfiguration.gracePeriodSeconds" value={gracePeriodSeconds}
+                              onChange={this.handleChange} required/>
+                  <Form.Input label='intervalSeconds' placeholder='intervalSeconds' name="marathonConfiguration.intervalSeconds" value={intervalSeconds}
+                              onChange={this.handleChange} required/>
+                  <Form.Input label='timeoutSeconds' placeholder='timeoutSeconds' name="marathonConfiguration.timeoutSeconds" value={timeoutSeconds}
+                              onChange={this.handleChange} required/>
+                  <Form.Input label='maxConsecutiveFailures' placeholder='maxConsecutiveFailures' name="marathonConfiguration.maxConsecutiveFailures" value={maxConsecutiveFailures}
+                              onChange={this.handleChange} required/>
                 </Segment>
               </Segment>
 
