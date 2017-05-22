@@ -1,10 +1,11 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
-import {Menu, Grid, Segment, Form, Input, Button, Label, Divider} from 'semantic-ui-react'
+import {Menu, Grid, Segment, Form, Input, Button, Label} from 'semantic-ui-react'
 import PropTypes from 'prop-types'
 import {Breadcrumb, Title} from 'components'
 import DetailGridComponent from './components/DetailGridComponent'
 import {GET_DEPLOYMENT_CONFIG, UPDATE_INPUT_FIELD, CHANGE_MODE} from 'actions/deployConfig'
+import {updateDeploymentConfigAPI, createDeploymentConfigAPI, deleteDeploymentConfigAPI} from 'api/DeployConfigSvc'
 
 class DeployConfigDetail extends Component {
   static propTypes = {
@@ -14,11 +15,28 @@ class DeployConfigDetail extends Component {
     getDeploymentConfig: PropTypes.func.isRequired,
     updateInputField: PropTypes.func.isRequired,
     enterEditMode: PropTypes.func.isRequired,
-    match: PropTypes.object
+    enterViewMode: PropTypes.func.isRequired,
+    match: PropTypes.object,
+    history: PropTypes.object
   }
   state = {activeItem: 'basic'}
 
   handleEditClick = () => this.props.enterEditMode()
+
+  handleCancelClick = () => {
+    if (this.props.isCreateMode) {
+      this.props.history.replace('')
+      return
+    }
+    this.props.enterViewMode()
+  }
+
+  handleDeleteClick= e => {
+    e.preventDefault()
+    const {envName, appName} = this.props.match.params
+    deleteDeploymentConfigAPI(appName, envName)
+    this.props.history.replace('')
+  }
 
   handleItemClick = (e, {name}) => this.setState({activeItem: name})
 
@@ -28,6 +46,15 @@ class DeployConfigDetail extends Component {
 
   handleSubmit = e => {
     e.preventDefault()
+    if (this.props.isCreateMode) {
+      const {appName} = this.props.match.params
+      const {newEnvName, ...deploymentConfig} = this.props.deploymentConfig
+      createDeploymentConfigAPI(appName, newEnvName, deploymentConfig)
+    } else {
+      const {envName, appName} = this.props.match.params
+      updateDeploymentConfigAPI(appName, envName, this.props.deploymentConfig)
+    }
+    this.props.enterViewMode()
   }
 
   componentDidMount () {
@@ -38,11 +65,14 @@ class DeployConfigDetail extends Component {
     this.props.getDeploymentConfig(appName, envName)
   }
 
-  InputExampleRightLabeledBasic = () => (
+  InputExampleRightLabeledBasic = (props) => (
     <Input
       label={{basic: true, content: 'MB', color: 'teal'}}
       labelPosition='right'
       placeholder='diskSpace'
+      name="diskSpaceInMb"
+      onChange={this.handleChange}
+      value={props.value}
     />
   )
 
@@ -50,23 +80,22 @@ class DeployConfigDetail extends Component {
     const {activeItem} = this.state
     const {isEditMode, isCreateMode, deploymentConfig = {}} = this.props
     const {
-      memory, instances, cpus, diskSpaceInMb, constraints, consulUrl,
+      newEnvName, memory, instances, cpus, diskSpaceInMb, constraints, consulUrl,
       nexusConfiguration: nexus = {},
       dockerConfiguration: docker = {},
       marathonConfiguration: marathon = {},
       envVariables = {},
-      healthChecks = {}
-    } = deploymentConfig
+      healthChecks = []} =
+     deploymentConfig
     const {groupId, artifactId, repositoryName, artifactType, baseUrl} = nexus
-    const {dockerRegistryUrl, imageName, pullImageOnEveryLaunch, networkType, hostPort, containerPort} = docker
+    const {dockerRegistryUrl, imageName, pullImageOnEveryLaunch, networkType, portMappings} = docker
+    const [{hostPort, protocol, containerPort}] = portMappings || [{}]
     const {marathonUrl, marathonUser, marathonPassword} = marathon
     const {
       SERVICE_NAME, SERVICE_TAGS, SPRING_PROFILES_ACTIVE, SERVICE_REGION, SERVICE_FAULTZONE, SERVICE_CHECK_HTTP, SERVICE_CHECK_INTERVAL,
       SERVICE_CHECK_TIMEOUT, spring_cloud_client_hostname: springCloudClientHostname, 'eureka_instance_non-secure-port': eurekaInstanceNonSecurePort} = envVariables
-    const {protocol, command, gracePeriodSeconds, intervalSeconds, timeoutSeconds, maxConsecutiveFailures} = healthChecks
 
     const {envName = 'Create', appName} = this.props.match.params
-
     const breadcrumbProps = {
       navs: [
         {name: 'HOME', url: '/'},
@@ -80,27 +109,27 @@ class DeployConfigDetail extends Component {
       const gridsProps = {
         overview: {
           title: 'Overview',
-          data: {memory, instances, cpus, diskSpaceInMb, constraints},
+          data: [{memory, instances, cpus, diskSpaceInMb, constraints}],
           titleColor: 'black'
         },
         nexus: {
           title: 'Nexus',
-          data: {groupId, artifactId, repositoryName, artifactType},
+          data: [{groupId, artifactId, repositoryName, artifactType}],
           titleColor: 'grey'
         },
         docker: {
           title: 'Docker',
-          data: {dockerRegistryUrl, imageName, pullImageOnEveryLaunch, networkType},
+          data: [{dockerRegistryUrl, imageName, pullImageOnEveryLaunch, networkType, hostPort, protocol, containerPort}],
           titleColor: 'blue   '
         },
         marathon: {
           title: 'Marathon',
-          data: {marathonUrl, marathonUser, marathonPassword},
+          data: [{marathonUrl, marathonUser, marathonPassword}],
           titleColor: 'olive'
         },
         envVariables: {
           title: 'Env Variables',
-          data: {
+          data: [{
             SERVICE_NAME,
             SERVICE_TAGS,
             SPRING_PROFILES_ACTIVE,
@@ -110,12 +139,12 @@ class DeployConfigDetail extends Component {
             SERVICE_CHECK_TIMEOUT,
             springCloudClientHostname,
             eurekaInstanceNonSecurePort
-          },
+          }],
           titleColor: 'green'
         },
         healthChecks: {
           title: 'Health Checks',
-          data: {protocol, command, gracePeriodSeconds, intervalSeconds, timeoutSeconds, maxConsecutiveFailures},
+          data: healthChecks,
           titleColor: 'red'
         }
       }
@@ -135,18 +164,22 @@ class DeployConfigDetail extends Component {
               </Menu>
             </Grid.Column>
             <Grid.Column width={12}>
-              <Button.Group floated='right'>
-                <Button icon="delete" color='red' content='Delete'/>
+              <Button.Group widths='3'>
+                <Button icon="delete" color='red' content='Delete' onClick={this.handleDeleteClick}/>
                 <Button.Or />
                 <Button icon="file" color='blue' content='Edit' onClick={this.handleEditClick}/>
               </Button.Group>
-              <Divider fitted clearing/>
               <DetailGridComponent {...gridsProps.overview}/>
               <DetailGridComponent {...gridsProps.nexus}/>
               <DetailGridComponent {...gridsProps.docker}/>
               <DetailGridComponent {...gridsProps.marathon}/>
               <DetailGridComponent {...gridsProps.envVariables}/>
               <DetailGridComponent {...gridsProps.healthChecks}/>
+              <Button.Group widths='3'>
+                <Button icon="delete" color='red' content='Delete' onClick={this.handleDeleteClick}/>
+                <Button.Or />
+                <Button icon="file" color='blue' content='Edit' onClick={this.handleEditClick}/>
+              </Button.Group>
             </Grid.Column>
           </Grid>
         </div>
@@ -169,8 +202,17 @@ class DeployConfigDetail extends Component {
           </Grid.Column>
           <Grid.Column stretched width={12}>
             <Form onSubmit={this.handleSubmit}>
+              <Button.Group widths='3'>
+                <Button type="button" onClick={this.handleCancelClick}>Cancel</Button>
+                <Button.Or />
+                <Button primary>Save</Button>
+              </Button.Group>
               <Segment>
                 <Label as='a' color='red' size="large" ribbon>Overview</Label>
+                {isCreateMode &&
+                <Form.Input label='Env Name' placeholder='Env Name' name="newEnvName" value={newEnvName}
+                            onChange={this.handleChange} required/>
+                }
                 <Form.Group widths='equal'>
                   <Form.Input label='memory' placeholder='Memory' name="memory" value={memory}
                               onChange={this.handleChange} required/>
@@ -180,14 +222,14 @@ class DeployConfigDetail extends Component {
                 <Form.Group widths='equal'>
                   <Form.Input label='cpus' placeholder='cpus' name="cpus" value={cpus}
                               onChange={this.handleChange} required/>
-                  <Form.Input control={this.InputExampleRightLabeledBasic} label='diskSpace' placeholder='diskSpace'
-                              name="diskSpace" value={diskSpaceInMb}
+                  <Form.Input control={this.InputExampleRightLabeledBasic} label='diskSpace'
+                              value={diskSpaceInMb}
                               onChange={this.handleChange} required/>
                 </Form.Group>
                 <Form.Input label='constraints' placeholder='constraints' name="constraints" value={constraints}
                             onChange={this.handleChange} required/>
                 <Form.Input label='consulUrl' placeholder='consulUrl' name="consulUrl" value={consulUrl}
-                            onChange={this.handleChange} required/>
+                            onChange={this.handleChange}/>
               </Segment>
               <Segment>
                 <Label as='a' color='grey' size="large" ribbon>Nexus</Label>
@@ -203,7 +245,7 @@ class DeployConfigDetail extends Component {
                             value={artifactType}
                             onChange={this.handleChange} required/>
                 <Form.Input label='baseUrl' placeholder='baseUrl' name="nexusConfiguration.baseUrl" value={baseUrl}
-                            onChange={this.handleChange} required/>
+                            onChange={this.handleChange}/>
               </Segment>
               <Segment>
                 <Label as='a' color='blue' size="large" ribbon>Docker</Label>
@@ -216,11 +258,11 @@ class DeployConfigDetail extends Component {
                 <Form.Input label='networkType' placeholder='networkType' name="dockerConfiguration.networkType" value={networkType}
                             onChange={this.handleChange} required/>
                 <Segment>
-                  <Form.Input label='containerPort' placeholder='containerPort' name="dockerConfiguration.containerPort" value={containerPort}
+                  <Form.Input label='containerPort' placeholder='containerPort' name="dockerConfiguration.portMappings[0].containerPort" value={containerPort}
                               onChange={this.handleChange} required/>
-                  <Form.Input label='hostPort' placeholder='hostPort' name="dockerConfiguration.hostPort" value={hostPort}
+                  <Form.Input label='hostPort' placeholder='hostPort' name="dockerConfiguration.portMappings[0].hostPort" value={hostPort}
                               onChange={this.handleChange} required/>
-                  <Form.Input label='protocol' placeholder='protocol' name="dockerConfiguration.protocol" value={protocol}
+                  <Form.Input label='protocol' placeholder='protocol' name="dockerConfiguration.portMappings[0].protocol" value={protocol}
                               onChange={this.handleChange} required/>
                 </Segment>
 
@@ -247,7 +289,7 @@ class DeployConfigDetail extends Component {
                 <Form.Input label='SERVICE_REGION' placeholder='SERVICE_REGION' name="envVariables.SERVICE_REGION" value={SERVICE_REGION}
                             onChange={this.handleChange} required/>
                 <Form.Input label='SERVICE_FAULTZONE' placeholder='SERVICE_FAULTZONE' name="envVariables.SERVICE_FAULTZONE" value={SERVICE_FAULTZONE}
-                            onChange={this.handleChange} required/>
+                            onChange={this.handleChange}/>
                 <Form.Input label='SERVICE_CHECK_HTTP' placeholder='SERVICE_CHECK_HTTP' name="envVariables.SERVICE_CHECK_HTTP" value={SERVICE_CHECK_HTTP}
                             onChange={this.handleChange} required/>
                 <Form.Input label='SERVICE_CHECK_INTERVAL' placeholder='SERVICE_CHECK_INTERVAL' name="envVariables.SERVICE_CHECK_INTERVAL" value={SERVICE_CHECK_INTERVAL}
@@ -261,25 +303,34 @@ class DeployConfigDetail extends Component {
               </Segment>
 
               <Segment>
-                <Segment>
-                  <Label as='a' color='red' size="large" ribbon>Health Checks</Label>
-                  <Form.Input label='protocol' placeholder='protocol' name="marathonConfiguration.protocol" value={protocol}
-                              onChange={this.handleChange} required/>
-                  <Form.Input label='command' placeholder='command' name="marathonConfiguration.command" value={command}
-                              onChange={this.handleChange} required/>
-                  <Form.Input label='gracePeriodSeconds' placeholder='gracePeriodSeconds' name="marathonConfiguration.gracePeriodSeconds" value={gracePeriodSeconds}
-                              onChange={this.handleChange} required/>
-                  <Form.Input label='intervalSeconds' placeholder='intervalSeconds' name="marathonConfiguration.intervalSeconds" value={intervalSeconds}
-                              onChange={this.handleChange} required/>
-                  <Form.Input label='timeoutSeconds' placeholder='timeoutSeconds' name="marathonConfiguration.timeoutSeconds" value={timeoutSeconds}
-                              onChange={this.handleChange} required/>
-                  <Form.Input label='maxConsecutiveFailures' placeholder='maxConsecutiveFailures' name="marathonConfiguration.maxConsecutiveFailures" value={maxConsecutiveFailures}
-                              onChange={this.handleChange} required/>
-                </Segment>
+                <Label as='a' color='red' size="large" ribbon>Health Checks</Label>
+                {healthChecks && healthChecks.map((data, index) => {
+                  return (
+                    <Segment>
+                      <Form.Input label='protocol' placeholder='protocol' name={`healthChecks[${index}].protocol`}
+                                  value={data.protocol}
+                                  onChange={this.handleChange} required/>
+                      <Form.Input label='command' placeholder='command' name={`healthChecks[${index}].command`} value={data.command}
+                                  onChange={this.handleChange} required/>
+                      <Form.Input label='gracePeriodSeconds' placeholder='gracePeriodSeconds'
+                                  name={`healthChecks[${index}].gracePeriodSeconds`} value={data.gracePeriodSeconds}
+                                  onChange={this.handleChange} required/>
+                      <Form.Input label='intervalSeconds' placeholder='intervalSeconds'
+                                  name={`healthChecks[${index}].intervalSeconds`} value={data.intervalSeconds}
+                                  onChange={this.handleChange} required/>
+                      <Form.Input label='timeoutSeconds' placeholder='timeoutSeconds'
+                                  name={`healthChecks[${index}].timeoutSeconds`} value={data.timeoutSeconds}
+                                  onChange={this.handleChange} required/>
+                      <Form.Input label='maxConsecutiveFailures' placeholder='maxConsecutiveFailures'
+                                  name={`healthChecks[${index}].maxConsecutiveFailures`} value={data.maxConsecutiveFailures}
+                                  onChange={this.handleChange} required/>
+                    </Segment>
+                  )
+                })}
               </Segment>
 
-              <Button.Group>
-                <Button>Cancel</Button>
+              <Button.Group widths='3'>
+                <Button type="button" onClick={this.handleCancelClick}>Cancel</Button>
                 <Button.Or />
                 <Button primary>Save</Button>
               </Button.Group>
@@ -307,7 +358,9 @@ function mapDispatchToProps (dispatch) {
     updateInputField: (name, value) =>
       dispatch(UPDATE_INPUT_FIELD(name, value)),
     enterEditMode: () =>
-      dispatch(CHANGE_MODE(true))
+      dispatch(CHANGE_MODE(true)),
+    enterViewMode: () =>
+      dispatch(CHANGE_MODE(false))
   }
 }
 

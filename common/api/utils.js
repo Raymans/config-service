@@ -6,7 +6,7 @@ import { getLocalToken } from 'api/AuthSvc'
 
 function requestWrapper (method) {
   return async function (url, data = null, params = {}) {
-    if (method === 'GET') {
+    if (method === 'GET' || method === 'DELETE') {
       // is it a GET?
       // GET doesn't have data
       params = data
