@@ -41,12 +41,11 @@ export const configureRootComponent = store => {
 }
 
 window.BASE_API = config.BASE_API
-
 if (process.env.NODE_ENV === 'production') {
   require('./pwa')
 } else if (process.env.NODE_ENV === 'development') {
-  window.Perf = Perf
-  whyDidYouUpdate(React)
+  /* window.Perf = Perf
+  whyDidYouUpdate(React) */
 }
 
 const preloadedState = window.__PRELOADED_STATE__ || {}

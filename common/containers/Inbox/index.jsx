@@ -28,6 +28,7 @@ class Inbox extends Component {
 }
 
 function mapStateToProps (state) {
+  console.log(state)
   return {conversations: state.inbox.conversations}
 }
 

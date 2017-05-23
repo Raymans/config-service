@@ -17,5 +17,7 @@
         "es6": true,
         "node": true
     },
-    "rules": {}
+    "rules": {
+        "no-unused-vars": ["off", { "vars": "all", "args": "none", "ignoreRestSiblings": true }]
+    }
 }
