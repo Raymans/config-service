@@ -20,17 +20,30 @@ export default class DetailGridComponent extends PureComponent {
       return Object.keys(data).map(function (key) {
         if (_.isArray(data[key])) {
           return data[key].map((val, i) => {
+            let cell = <Table.Cell>{val}</Table.Cell>
+
+            if (_.isObject(val)) {
+              cell = (
+                <Table.Cell className="ignored" style={{'border-left': '1px solid rgba(34, 36, 38, 0.15)'}}>
+                  {Object.keys(val).map((k) =>
+                    <Label>
+                      {k}
+                      <Label.Detail>{val[k]}</Label.Detail>
+                    </Label>
+                  )}
+                </Table.Cell>)
+            }
             if (i === 0) {
               return (
                 <Table.Row>
                   <Table.Cell width={4} rowSpan={data[key].length}>{key}</Table.Cell>
-                  <Table.Cell>{val}</Table.Cell>
+                  {cell}
                 </Table.Row>
               )
             }
             return (
               <Table.Row>
-                <Table.Cell>{val}</Table.Cell>
+                {cell}
               </Table.Row>
             )
           })

@@ -38,7 +38,7 @@ export default class DeployConfigsComponent extends Component {
       rows: rows,
       prefixDetailLink: `/apps/${appName}/deploy-configs`
     }
-    let noDeploymentConfigs = deploymentConfigs && deploymentConfigs.length === 0
+    let noDeploymentConfigs = !deploymentConfigs || deploymentConfigs.length === 0
     return (
       <div>
         <Breadcrumb {...breadcrumbProps} />

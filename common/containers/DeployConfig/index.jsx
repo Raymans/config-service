@@ -89,7 +89,6 @@ class DeployConfigDetail extends Component {
      deploymentConfig
     const {groupId, artifactId, repositoryName, artifactType, baseUrl} = nexus
     const {dockerRegistryUrl, imageName, pullImageOnEveryLaunch, networkType, portMappings} = docker
-    const [{hostPort, protocol, containerPort}] = portMappings || [{}]
     const {marathonUrl, marathonUser, marathonPassword} = marathon
     const {
       SERVICE_NAME, SERVICE_TAGS, SPRING_PROFILES_ACTIVE, SERVICE_REGION, SERVICE_FAULTZONE, SERVICE_CHECK_HTTP, SERVICE_CHECK_INTERVAL,
@@ -119,7 +118,7 @@ class DeployConfigDetail extends Component {
         },
         docker: {
           title: 'Docker',
-          data: [{dockerRegistryUrl, imageName, pullImageOnEveryLaunch, networkType, hostPort, protocol, containerPort}],
+          data: [{dockerRegistryUrl, imageName, pullImageOnEveryLaunch, networkType, portMappings}],
           titleColor: 'blue   '
         },
         marathon: {
@@ -257,15 +256,18 @@ class DeployConfigDetail extends Component {
                             onChange={this.handleChange} required/>
                 <Form.Input label='networkType' placeholder='networkType' name="dockerConfiguration.networkType" value={networkType}
                             onChange={this.handleChange} required/>
-                <Segment>
-                  <Form.Input label='containerPort' placeholder='containerPort' name="dockerConfiguration.portMappings[0].containerPort" value={containerPort}
-                              onChange={this.handleChange} required/>
-                  <Form.Input label='hostPort' placeholder='hostPort' name="dockerConfiguration.portMappings[0].hostPort" value={hostPort}
-                              onChange={this.handleChange} required/>
-                  <Form.Input label='protocol' placeholder='protocol' name="dockerConfiguration.portMappings[0].protocol" value={protocol}
-                              onChange={this.handleChange} required/>
-                </Segment>
-
+                {portMappings && portMappings.map((mapping, i) =>
+                   <Segment>
+                     <Form.Group widths='equal'>
+                       <Form.Input label='containerPort' placeholder='containerPort' name={`dockerConfiguration.portMappings[{i}].containerPort`} value={mapping.containerPort}
+                                   onChange={this.handleChange} required/>
+                       <Form.Input label='hostPort' placeholder='hostPort' name={`dockerConfiguration.portMappings[{i}].hostPort`} value={mapping.hostPort}
+                                   onChange={this.handleChange} required/>
+                       <Form.Input label='protocol' placeholder='protocol' name={`dockerConfiguration.portMappings[{i}].protocol`} value={mapping.protocol}
+                                   onChange={this.handleChange} required/>
+                     </Form.Group>
+                  </Segment>
+                )}
               </Segment>
 
               <Segment>
