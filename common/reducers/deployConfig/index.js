@@ -17,13 +17,28 @@ export const initialState = {
         hostPort: '',
         protocol: ''
       }]
-    }
+    },
+    healthChecks: [{
+      protocol: '',
+      command: '',
+      gracePeriodSeconds: 0,
+      intervalSeconds: 0,
+      timeoutSeconds: 0,
+      maxConsecutiveFailures: 0
+    }],
+    envVariables: {},
+    tempEnvVariables: [{key: '', value: ''}]
   }
 }
 
 export function deployConfig (state = initialState, action) {
   switch (action.type) {
     case GET_DEPLOYMENT_CONFIG_SUCCESS:
+      const envVariables = action.result.envVariables &&
+        _.map(action.result.envVariables, (key, val) => {
+          return {key: val, value: key}
+        })
+      action.result.tempEnvVariables = envVariables
       return {
         ...state,
         deploymentConfig: action.result

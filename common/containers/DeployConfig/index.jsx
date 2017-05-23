@@ -32,6 +32,36 @@ class DeployConfigDetail extends Component {
     this.props.updateInputField('dockerConfiguration.portMappings', portMappings)
   }
 
+  handleAddHealthChecks = () => {
+    const healthChecks = this.props.deploymentConfig.healthChecks || []
+    healthChecks.push({
+      protocol: '',
+      command: '',
+      gracePeriodSeconds: 0,
+      intervalSeconds: 0,
+      timeoutSeconds: 0,
+      maxConsecutiveFailures: 0
+    })
+    this.props.updateInputField('tempEnvVariables', healthChecks)
+  }
+
+  handleAddEnvVariable = () => {
+    const tempEnvVariables = this.props.deploymentConfig.tempEnvVariables || []
+    tempEnvVariables.push({
+      'key': '',
+      'value': ''
+    })
+    this.props.updateInputField('tempEnvVariables', tempEnvVariables)
+  }
+
+  handleRemoveHealthChecks = (e, {index}) => {
+    const healthChecks = this.props.deploymentConfig.healthChecks || []
+    const hcs = _.filter(healthChecks, (p, i) => {
+      return i !== index
+    })
+    this.props.updateInputField('healthChecks', hcs)
+  }
+
   handleRemovePortMappings = (e, {index}) => {
     const portMappings = this.props.deploymentConfig.dockerConfiguration.portMappings || []
     const pms = _.filter(portMappings, (p, i) => {
@@ -47,7 +77,10 @@ class DeployConfigDetail extends Component {
       this.props.history.replace('')
       return
     }
-    this.props.enterViewMode()
+    // TODO
+    const {envName, appName} = this.props.match.params
+    this.props.getDeploymentConfig(appName, envName)
+    setTimeout(this.props.enterViewMode, 1000)
   }
 
   handleDeleteClick = e => {
@@ -65,15 +98,26 @@ class DeployConfigDetail extends Component {
 
   handleSubmit = e => {
     e.preventDefault()
+    const {appName} = this.props.match.params
+    const {tempEnvVariables, newEnvName, ...deploymentConfig} = this.props.deploymentConfig
+    deploymentConfig.envVariables = _.reduce(tempEnvVariables, function (result, data) {
+      if (!data.key) return result
+      result[data.key] = data.value
+      return result
+    }, {})
     if (this.props.isCreateMode) {
-      const {appName} = this.props.match.params
-      const {newEnvName, ...deploymentConfig} = this.props.deploymentConfig
       createDeploymentConfigAPI(appName, newEnvName, deploymentConfig)
+      // TODO
+      this.props.history.replace(newEnvName)
+      this.props.getDeploymentConfig(appName, newEnvName)
     } else {
       const {envName, appName} = this.props.match.params
-      updateDeploymentConfigAPI(appName, envName, this.props.deploymentConfig)
+      updateDeploymentConfigAPI(appName, envName, deploymentConfig)
+      // TODO
+      this.props.getDeploymentConfig(appName, envName)
     }
-    this.props.enterViewMode()
+    // TODO
+    setTimeout(this.props.enterViewMode, 1000)
   }
 
   componentDidMount () {
@@ -104,16 +148,13 @@ class DeployConfigDetail extends Component {
       dockerConfiguration: docker = {},
       marathonConfiguration: marathon = {},
       envVariables = {},
+      tempEnvVariables = [],
       healthChecks = []
     } =
       deploymentConfig
     const {groupId, artifactId, repositoryName, artifactType, baseUrl} = nexus
     const {dockerRegistryUrl, imageName, pullImageOnEveryLaunch, networkType, portMappings} = docker
     const {marathonUrl, marathonUser, marathonPassword} = marathon
-    const {
-      SERVICE_NAME, SERVICE_TAGS, SPRING_PROFILES_ACTIVE, SERVICE_REGION, SERVICE_FAULTZONE, SERVICE_CHECK_HTTP, SERVICE_CHECK_INTERVAL,
-      SERVICE_CHECK_TIMEOUT, spring_cloud_client_hostname: springCloudClientHostname, 'eureka_instance_non-secure-port': eurekaInstanceNonSecurePort
-    } = envVariables
 
     const {envName = 'Create', appName} = this.props.match.params
     const breadcrumbProps = {
@@ -149,17 +190,7 @@ class DeployConfigDetail extends Component {
         },
         envVariables: {
           title: 'Env Variables',
-          data: [{
-            SERVICE_NAME,
-            SERVICE_TAGS,
-            SPRING_PROFILES_ACTIVE,
-            SERVICE_REGION,
-            SERVICE_CHECK_HTTP,
-            SERVICE_CHECK_INTERVAL,
-            SERVICE_CHECK_TIMEOUT,
-            springCloudClientHostname,
-            eurekaInstanceNonSecurePort
-          }],
+          data: [envVariables],
           titleColor: 'green'
         },
         healthChecks: {
@@ -284,9 +315,9 @@ class DeployConfigDetail extends Component {
                 <div className="required field"><label>portMappings</label></div>
                 {portMappings && portMappings.map((mapping, i) =>
                   <Segment>
+                    <Button key={i} circular icon="minus" color="red" type="button" index={i}
+                            onClick={this.handleRemovePortMappings}/>
                     <Form.Group widths='equal'>
-                      <Button key={i} circular icon="minus" color="red" type="button" index={i}
-                              onClick={this.handleRemovePortMappings}/>
                       <Form.Input label='containerPort' placeholder='containerPort'
                                   name={`dockerConfiguration.portMappings[${i}].containerPort`}
                                   value={mapping.containerPort}
@@ -318,36 +349,17 @@ class DeployConfigDetail extends Component {
 
               <Segment>
                 <Label as='a' color='green' size="large" ribbon>Env Variables</Label>
-                <Form.Input label='SERVICE_NAME' placeholder='SERVICE_NAME' name="envVariables.SERVICE_NAME"
-                            value={SERVICE_NAME}
-                            onChange={this.handleChange} required/>
-                <Form.Input label='SERVICE_TAGS' placeholder='SERVICE_TAGS' name="envVariables.SERVICE_TAGS"
-                            value={SERVICE_TAGS}
-                            onChange={this.handleChange} required/>
-                <Form.Input label='SPRING_PROFILES_ACTIVE' placeholder='SPRING_PROFILES_ACTIVE'
-                            name="envVariables.SPRING_PROFILES_ACTIVE" value={SPRING_PROFILES_ACTIVE}
-                            onChange={this.handleChange} required/>
-                <Form.Input label='SERVICE_REGION' placeholder='SERVICE_REGION' name="envVariables.SERVICE_REGION"
-                            value={SERVICE_REGION}
-                            onChange={this.handleChange} required/>
-                <Form.Input label='SERVICE_FAULTZONE' placeholder='SERVICE_FAULTZONE'
-                            name="envVariables.SERVICE_FAULTZONE" value={SERVICE_FAULTZONE}
-                            onChange={this.handleChange}/>
-                <Form.Input label='SERVICE_CHECK_HTTP' placeholder='SERVICE_CHECK_HTTP'
-                            name="envVariables.SERVICE_CHECK_HTTP" value={SERVICE_CHECK_HTTP}
-                            onChange={this.handleChange} required/>
-                <Form.Input label='SERVICE_CHECK_INTERVAL' placeholder='SERVICE_CHECK_INTERVAL'
-                            name="envVariables.SERVICE_CHECK_INTERVAL" value={SERVICE_CHECK_INTERVAL}
-                            onChange={this.handleChange} required/>
-                <Form.Input label='SERVICE_CHECK_TIMEOUT' placeholder='SERVICE_CHECK_TIMEOUT'
-                            name="envVariables.SERVICE_CHECK_TIMEOUT" value={SERVICE_CHECK_TIMEOUT}
-                            onChange={this.handleChange} required/>
-                <Form.Input label='spring_cloud_client_hostname' placeholder='spring_cloud_client_hostname'
-                            name="envVariables.spring_cloud_client_hostname" value={springCloudClientHostname}
-                            onChange={this.handleChange} required/>
-                <Form.Input label='eureka_instance_non-secure-port' placeholder='eureka_instance_non-secure-port'
-                            name="envVariables.eureka_instance_non-secure-port" value={eurekaInstanceNonSecurePort}
-                            onChange={this.handleChange} required/>
+                {tempEnvVariables && tempEnvVariables.map((key, i) =>
+                  <Form.Group widths='equal'>
+                    <Form.Input label={i === 0 && 'Key'} placeholder='Key' name={`tempEnvVariables[${i}].key`}
+                                value={tempEnvVariables[i].key}
+                                onChange={this.handleChange}/>
+                    <Form.Input label={i === 0 && 'Value'} placeholder='Value' name={`tempEnvVariables[${i}].value`}
+                                value={tempEnvVariables[i].value}
+                                onChange={this.handleChange}/>
+                  </Form.Group>
+                )}
+                <Button circular icon="add" color="blue" type="button" onClick={this.handleAddEnvVariable}/>
               </Segment>
 
               <Segment>
@@ -355,6 +367,8 @@ class DeployConfigDetail extends Component {
                 {healthChecks && healthChecks.map((data, index) => {
                   return (
                     <Segment>
+                      <Button key={index} circular icon="minus" color="red" type="button" index={index}
+                              onClick={this.handleRemoveHealthChecks}/>
                       <Form.Input label='protocol' placeholder='protocol' name={`healthChecks[${index}].protocol`}
                                   value={data.protocol}
                                   onChange={this.handleChange} required/>
@@ -377,6 +391,7 @@ class DeployConfigDetail extends Component {
                     </Segment>
                   )
                 })}
+                <Button circular icon="add" color="blue" type="button" onClick={this.handleAddHealthChecks}/>
               </Segment>
 
               <Button.Group widths='3'>
