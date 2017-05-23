@@ -10,7 +10,15 @@ import {LOCATION_CHANGE} from 'actions/common'
 import _ from 'lodash'
 
 export const initialState = {
-  deploymentConfig: {}
+  deploymentConfig: {
+    dockerConfiguration: {
+      portMappings: [{
+        containerPort: '',
+        hostPort: '',
+        protocol: ''
+      }]
+    }
+  }
 }
 
 export function deployConfig (state = initialState, action) {
