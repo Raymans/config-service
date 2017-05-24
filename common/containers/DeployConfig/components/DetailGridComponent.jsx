@@ -11,7 +11,7 @@ export default class DetailGridComponent extends PureComponent {
   }
 
   render () {
-    const {title, data, titleColor} = this.props
+    const {title, data, titleColor, ...props} = this.props
     const buildRows = (data) => {
       if (!data) {
         return (<Table.Row><Table.Cell ></Table.Cell>
@@ -58,7 +58,7 @@ export default class DetailGridComponent extends PureComponent {
     }
 
     return (
-      <Segment>
+      <Segment {...props}>
         <Label as='a' ribbon size="large" color={titleColor}>{title}</Label>
         {data && data.map((d) => {
           if (data.length === 0) {

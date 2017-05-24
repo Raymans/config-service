@@ -17,7 +17,11 @@
     "semantic-ui-css": "^2.2.10",
     "semantic-ui-react": "^0.68.2",
     "store2": "^2.5.1",
-    "whatwg-fetch": "^2.0.3"
+    "whatwg-fetch": "^2.0.3",
+    "scroll-to-element": "^2.0.0",
+    "scrollmonitor": "^1.0.12",
+    "react-scroll": "^1.5.2",
+    "scrollmonitor-react": "2.2.0"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",

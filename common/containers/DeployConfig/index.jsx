@@ -1,22 +1,27 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
-import {Menu, Grid, Segment, Form, Input, Button, Label} from 'semantic-ui-react'
+import {Grid, Segment, Form, Input, Button, Label} from 'semantic-ui-react'
 import PropTypes from 'prop-types'
 import {Breadcrumb, Title} from 'components'
 import DetailGridComponent from './components/DetailGridComponent'
-import {GET_DEPLOYMENT_CONFIG, UPDATE_INPUT_FIELD, CHANGE_MODE} from 'actions/deployConfig'
+import SideMenuComponent from './components/SideMenuComponent'
+import {GET_DEPLOYMENT_CONFIG, UPDATE_INPUT_FIELD, CHANGE_MODE, STICK_SIDE_MENU} from 'actions/deployConfig'
 import {updateDeploymentConfigAPI, createDeploymentConfigAPI, deleteDeploymentConfigAPI} from 'api/DeployConfigSvc'
 import _ from 'lodash'
+import './DeployConfig.scss'
+import {scroller} from 'react-scroll'
 
 class DeployConfigDetail extends Component {
   static propTypes = {
     isCreateMode: PropTypes.bool,
     isEditMode: PropTypes.bool,
+    isStickyMenu: PropTypes.bool,
     deploymentConfig: PropTypes.object,
     getDeploymentConfig: PropTypes.func.isRequired,
     updateInputField: PropTypes.func.isRequired,
     enterEditMode: PropTypes.func.isRequired,
     enterViewMode: PropTypes.func.isRequired,
+    changeSideMenuPos: PropTypes.func.isRequired,
     match: PropTypes.object,
     history: PropTypes.object
   }
@@ -42,7 +47,7 @@ class DeployConfigDetail extends Component {
       timeoutSeconds: 0,
       maxConsecutiveFailures: 0
     })
-    this.props.updateInputField('tempEnvVariables', healthChecks)
+    this.props.updateInputField('healthChecks', healthChecks)
   }
 
   handleAddEnvVariable = () => {
@@ -90,7 +95,14 @@ class DeployConfigDetail extends Component {
     this.props.history.replace('')
   }
 
-  handleItemClick = (e, {name}) => this.setState({activeItem: name})
+  handleItemClick = (e, {name}) => {
+    this.setState({activeItem: name})
+    scroller.scrollTo(name, {
+      duration: 1000,
+      smooth: 'easeInOutQuint',
+      offset: -80
+    })
+  }
 
   handleChange = (e, {name, value}) => {
     this.props.updateInputField(name, value)
@@ -139,9 +151,17 @@ class DeployConfigDetail extends Component {
     />
   )
 
+  receiveStateChange (watcher) {
+    if (watcher.isAboveViewport) {
+      this.props.changeSideMenuPos(true)
+      return
+    }
+    this.props.changeSideMenuPos(false)
+  }
+
   render () {
     const {activeItem} = this.state
-    const {isEditMode, isCreateMode, deploymentConfig = {}} = this.props
+    const {isEditMode, isCreateMode, isStickyMenu, deploymentConfig = {}} = this.props
     const {
       newEnvName, memory, instances, cpus, diskSpaceInMb, constraints, consulUrl,
       nexusConfiguration: nexus = {},
@@ -168,8 +188,8 @@ class DeployConfigDetail extends Component {
     const titleProps = {icon: 'cloud', content: isEditMode ? 'Create' : envName}
     if (!isEditMode && !isCreateMode) {
       const gridsProps = {
-        overview: {
-          title: 'Overview',
+        basic: {
+          title: 'Basic',
           data: [{memory, instances, cpus, diskSpaceInMb, constraints}],
           titleColor: 'black'
         },
@@ -205,14 +225,8 @@ class DeployConfigDetail extends Component {
           <Title {...titleProps}/>
           <Grid>
             <Grid.Column width={2}>
-              <Menu fluid vertical tabular>
-                <Menu.Item name='basic' active={activeItem === 'basic'} onClick={this.handleItemClick}/>
-                <Menu.Item name='nexus' active={activeItem === 'nexus'} onClick={this.handleItemClick}/>
-                <Menu.Item name='docker' active={activeItem === 'docker'} onClick={this.handleItemClick}/>
-                <Menu.Item name='marathon' active={activeItem === 'marathon'} onClick={this.handleItemClick}/>
-                <Menu.Item name='envVariables' active={activeItem === 'envVariables'} onClick={this.handleItemClick}/>
-                <Menu.Item name='healthChecks' active={activeItem === 'healthChecks'} onClick={this.handleItemClick}/>
-              </Menu>
+              <SideMenuComponent activeItem={activeItem} handleMenuClick={this.handleItemClick} isSticky={isStickyMenu}
+                                 stateChange={::this.receiveStateChange}/>
             </Grid.Column>
             <Grid.Column width={12}>
               <Button.Group widths='3'>
@@ -220,12 +234,12 @@ class DeployConfigDetail extends Component {
                 <Button.Or />
                 <Button icon="file" color='blue' content='Edit' onClick={this.handleEditClick}/>
               </Button.Group>
-              <DetailGridComponent {...gridsProps.overview}/>
-              <DetailGridComponent {...gridsProps.nexus}/>
-              <DetailGridComponent {...gridsProps.docker}/>
-              <DetailGridComponent {...gridsProps.marathon}/>
-              <DetailGridComponent {...gridsProps.envVariables}/>
-              <DetailGridComponent {...gridsProps.healthChecks}/>
+              <DetailGridComponent id="basic" {...gridsProps.basic}/>
+              <DetailGridComponent id="nexus" {...gridsProps.nexus}/>
+              <DetailGridComponent id="docker" {...gridsProps.docker}/>
+              <DetailGridComponent id="marathon" {...gridsProps.marathon}/>
+              <DetailGridComponent id="envVariables" {...gridsProps.envVariables}/>
+              <DetailGridComponent id="healthChecks" {...gridsProps.healthChecks}/>
               <Button.Group widths='3'>
                 <Button icon="delete" color='red' content='Delete' onClick={this.handleDeleteClick}/>
                 <Button.Or />
@@ -242,14 +256,8 @@ class DeployConfigDetail extends Component {
         <Title {...titleProps}/>
         <Grid>
           <Grid.Column width={2}>
-            <Menu fluid vertical tabular>
-              <Menu.Item name='basic' active={activeItem === 'basic'} onClick={this.handleItemClick}/>
-              <Menu.Item name='nexus' active={activeItem === 'nexus'} onClick={this.handleItemClick}/>
-              <Menu.Item name='docker' active={activeItem === 'docker'} onClick={this.handleItemClick}/>
-              <Menu.Item name='marathon' active={activeItem === 'marathon'} onClick={this.handleItemClick}/>
-              <Menu.Item name='envVariables' active={activeItem === 'envVariables'} onClick={this.handleItemClick}/>
-              <Menu.Item name='healthChecks' active={activeItem === 'healthChecks'} onClick={this.handleItemClick}/>
-            </Menu>
+            <SideMenuComponent activeItem={activeItem} handleMenuClick={this.handleItemClick} isSticky={isStickyMenu}
+                               stateChange={::this.receiveStateChange}/>
           </Grid.Column>
           <Grid.Column stretched width={12}>
             <Form onSubmit={this.handleSubmit}>
@@ -258,8 +266,8 @@ class DeployConfigDetail extends Component {
                 <Button.Or />
                 <Button primary>Save</Button>
               </Button.Group>
-              <Segment>
-                <Label as='a' color='red' size="large" ribbon>Overview</Label>
+              <Segment id="basic">
+                <Label as='a' color='red' size="large" ribbon>Basic</Label>
                 {isCreateMode &&
                 <Form.Input label='Env Name' placeholder='Env Name' name="newEnvName" value={newEnvName}
                             onChange={this.handleChange} required/>
@@ -282,7 +290,7 @@ class DeployConfigDetail extends Component {
                 <Form.Input label='consulUrl' placeholder='consulUrl' name="consulUrl" value={consulUrl}
                             onChange={this.handleChange}/>
               </Segment>
-              <Segment>
+              <Segment id="nexus" >
                 <Label as='a' color='grey' size="large" ribbon>Nexus</Label>
                 <Form.Input label='groupId' placeholder='groupId' name="nexusConfiguration.groupId" value={groupId}
                             onChange={this.handleChange} required/>
@@ -298,7 +306,7 @@ class DeployConfigDetail extends Component {
                 <Form.Input label='baseUrl' placeholder='baseUrl' name="nexusConfiguration.baseUrl" value={baseUrl}
                             onChange={this.handleChange}/>
               </Segment>
-              <Segment>
+              <Segment id="docker" >
                 <Label as='a' color='blue' size="large" ribbon>Docker</Label>
                 <Form.Input label='imageName' placeholder='imageName' name="dockerConfiguration.imageName"
                             value={imageName}
@@ -334,7 +342,7 @@ class DeployConfigDetail extends Component {
                 <Button circular icon="add" color="blue" type="button" onClick={this.handleAddPortMappings}/>
               </Segment>
 
-              <Segment>
+              <Segment id="marathon">
                 <Label as='a' color='olive' size="large" ribbon>Marathon</Label>
                 <Form.Input label='marathonUrl' placeholder='marathonUrl' name="marathonConfiguration.marathonUrl"
                             value={marathonUrl}
@@ -347,7 +355,7 @@ class DeployConfigDetail extends Component {
                             onChange={this.handleChange} required/>
               </Segment>
 
-              <Segment>
+              <Segment id="envVariables">
                 <Label as='a' color='green' size="large" ribbon>Env Variables</Label>
                 {tempEnvVariables && tempEnvVariables.map((key, i) =>
                   <Form.Group widths='equal'>
@@ -362,7 +370,7 @@ class DeployConfigDetail extends Component {
                 <Button circular icon="add" color="blue" type="button" onClick={this.handleAddEnvVariable}/>
               </Segment>
 
-              <Segment>
+              <Segment id="healthChecks">
                 <Label as='a' color='red' size="large" ribbon>Health Checks</Label>
                 {healthChecks && healthChecks.map((data, index) => {
                   return (
@@ -410,7 +418,8 @@ class DeployConfigDetail extends Component {
 function mapStateToProps (state) {
   return {
     deploymentConfig: state.deployConfig.deploymentConfig,
-    isEditMode: state.deployConfig.isEditMode
+    isEditMode: state.deployConfig.isEditMode,
+    isStickyMenu: state.deployConfig.isStickyMenu
   }
 }
 
@@ -425,7 +434,9 @@ function mapDispatchToProps (dispatch) {
     enterEditMode: () =>
       dispatch(CHANGE_MODE(true)),
     enterViewMode: () =>
-      dispatch(CHANGE_MODE(false))
+      dispatch(CHANGE_MODE(false)),
+    changeSideMenuPos: (isSticky) =>
+      dispatch(STICK_SIDE_MENU(isSticky))
   }
 }
 

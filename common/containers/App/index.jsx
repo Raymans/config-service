@@ -5,11 +5,11 @@ import {withRouter} from 'react-router'
 // Use the prop-types package from npm instead.
 import PropTypes from 'prop-types'
 import {push} from 'react-router-redux'
-import {Dimmer, Sidebar as SidebarSemantic, Container} from 'semantic-ui-react'
-import {Header, Sidebar, Footer} from 'components'
+import {Dimmer, Container} from 'semantic-ui-react'
+import {Header, Footer} from 'components'
 import {CLOSE_SIDEBAR, OPEN_SIDEBAR, WINDOW_RESIZE} from 'actions/layout'
 import {LOGOUT_AUTH} from 'actions/auth'
-import {appRouting} from 'routing'
+// import {appRouting} from 'routing'
 import './App.scss'
 
 class App extends Component {
@@ -76,10 +76,10 @@ class App extends Component {
       sidebarOpened,
       closeSidebar,
       isLoggedIn,
-      logout,
-      toggleSidebar,
+      // logout,
+      toggleSidebar
       // location,
-      isMobile
+      // isMobile
     } = this.props
 
     // must be refactored, if one of your route looks like `/api/users/:id`
@@ -90,18 +90,11 @@ class App extends Component {
     // const title = currentRoute.name || ''
     const title = 'Apps Dashboard'
     // routing for sidebar menu
-    const sidebarRouting = appRouting.filter(a => a.sidebarVisible).map(a => {
+    /* const sidebarRouting = appRouting.filter(a => a.sidebarVisible).map(a => {
       let {path, name, icon, external, strict, exact} = a
       let b = {path, name, icon, external, strict, exact}
       return b
-    })
-
-    let sidebarProps = {
-      isMobile,
-      logout,
-      open: sidebarOpened,
-      routing: sidebarRouting
-    }
+    }) */
 
     let headerProps = {
       toggleSidebar,
@@ -116,9 +109,6 @@ class App extends Component {
 
     return (
       <div className="page-layout">
-        <SidebarSemantic.Pushable>
-          {isLoggedIn && <Sidebar {...sidebarProps} />}
-          <SidebarSemantic.Pusher>
             {/* Semantic ui currently(16.04.16) doesn't have closeDimmerOnClick or smth else
                         So, instead of it, we can use simple <Dimmer> component */}
             {/* <SidebarSemantic.Pusher dimmed={sidebarOpened}> */}
@@ -135,8 +125,6 @@ class App extends Component {
                             1. isLoggedIn, elsewhere sidebar isn't visible
                         2. if sidebar is opened  */}
             {isLoggedIn && sidebarOpened && <Dimmer {...dimmerProps} />}
-          </SidebarSemantic.Pusher>
-        </SidebarSemantic.Pushable>
       </div>
     )
   }
