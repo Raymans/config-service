@@ -49,8 +49,8 @@ When the app is cached with Service Workers:
 
 #### Install:
 ```bash
-git clone https://github.com/Metnew/react-semantic.ui-starter.git
-cd react-semantic.ui-starter && rm -rf .git
+git clone https://github.com/Raymans/config-service.git
+cd config-service && rm -rf .git
 npm install
 ```
 
@@ -131,8 +131,6 @@ But we can fix this:
 **[Like this.](https://github.com/Metnew/react-semantic.ui-starter/tree/gh-pages)**
 
 ### Also:
-
-[Unstable branch with **latest features.**](https://github.com/Metnew/react-semantic.ui-starter/tree/dev)
 
 > Have a question? Ask it. :wink:
 
