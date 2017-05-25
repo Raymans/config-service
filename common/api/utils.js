@@ -62,7 +62,7 @@ async function parseJSON (res) {
   try {
     json = await res.json()
   } catch (e) {
-    return { data: {}, ok: false }
+    return { data: {}, ok: res.ok }
   }
 
   // simplest validation ever, ahah :)

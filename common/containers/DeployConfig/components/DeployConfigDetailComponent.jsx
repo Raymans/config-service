@@ -1,5 +1,5 @@
 import React, {PureComponent} from 'react'
-import {Grid, Button} from 'semantic-ui-react'
+import {Grid, Button, Dimmer, Loader} from 'semantic-ui-react'
 import PropTypes from 'prop-types'
 import {Breadcrumb, Title} from 'components'
 import DetailGridComponent from './DetailGridComponent'
@@ -16,7 +16,8 @@ export default class DeployConfigDetailComponent extends PureComponent {
     sideMenuStateChange: PropTypes.func,
     isStickyMenu: PropTypes.bool,
     activeItem: PropTypes.string,
-    titleColor: PropTypes.string
+    titleColor: PropTypes.string,
+    isLoading: PropTypes.bool
   }
 
   render () {
@@ -29,17 +30,24 @@ export default class DeployConfigDetailComponent extends PureComponent {
       handleSideMenuClick,
       sideMenuStateChange,
       isStickyMenu,
-      activeItem
+      activeItem,
+      isLoading
     } = this.props
     return (
       <div>
         <Breadcrumb {...breadcrumbProps} />
         <Title {...titleProps}/>
         <Grid>
+          {isLoading &&
+          <Dimmer active inverted>
+            <Loader />
+          </Dimmer>
+          }
           <Grid.Column width={2}>
             <SideMenuComponent activeItem={activeItem} handleMenuClick={handleSideMenuClick} isSticky={isStickyMenu}
                                stateChange={sideMenuStateChange}/>
           </Grid.Column>
+          {!isLoading &&
           <Grid.Column width={12}>
             <Button.Group widths='3'>
               <Button icon="delete" color='red' content='Delete' onClick={handleDeleteClick}/>
@@ -58,6 +66,7 @@ export default class DeployConfigDetailComponent extends PureComponent {
               <Button icon="file" color='blue' content='Edit' onClick={handleEditClick}/>
             </Button.Group>
           </Grid.Column>
+          }
         </Grid>
       </div>
     )

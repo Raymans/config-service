@@ -1,9 +1,20 @@
-import {getDeploymentConfigAPI} from 'api/DeployConfigSvc'
+import {
+  getDeploymentConfigAPI,
+  updateDeploymentConfigAPI,
+  createDeploymentConfigAPI,
+  deleteDeploymentConfigAPI
+} from 'api/DeployConfigSvc'
 import {resultOK} from 'api/utils'
 
 // define action types
 export const GET_DEPLOYMENT_CONFIG_SUCCESS = 'GET_DEPLOYMENT_CONFIG_SUCCESS'
 export const GET_DEPLOYMENT_CONFIG_FAIL = 'GET_DEPLOYMENT_CONFIG_FAIL'
+export const UPDATE_DEPLOYMENT_CONFIG_SUCCESS = 'UPDATE_DEPLOYMENT_CONFIG_SUCCESS'
+export const UPDATE_DEPLOYMENT_CONFIG_FAIL = 'UPDATE_DEPLOYMENT_CONFIG_FAIL'
+export const CREATE_DEPLOYMENT_CONFIG_SUCCESS = 'CREATE_DEPLOYMENT_CONFIG_SUCCESS'
+export const CREATE_DEPLOYMENT_CONFIG_FAIL = 'CREATE_DEPLOYMENT_CONFIG_FAIL'
+export const DELETE_DEPLOYMENT_CONFIG_SUCCESS = 'DELETE_DEPLOYMENT_CONFIG_SUCCESS'
+export const DELETE_DEPLOYMENT_CONFIG_FAIL = 'DELETE_DEPLOYMENT_CONFIG_FAIL'
 
 export const CHANGE_INPUT_FILED = 'CHANGE_INPUT_FILED'
 
@@ -19,6 +30,37 @@ export function GET_DEPLOYMENT_CONFIG (appName, envName) {
       return {type: GET_DEPLOYMENT_CONFIG_FAIL, error: result.data}
     }
     return {type: GET_DEPLOYMENT_CONFIG_SUCCESS, result: result.data}
+  }
+}
+
+export function UPDATE_DEPLOYMENT_CONFIG (appName, envName, deployConfig) {
+  return async() => {
+    let result = await updateDeploymentConfigAPI(appName, envName, deployConfig)
+    if (!resultOK(result)) {
+      return {type: UPDATE_DEPLOYMENT_CONFIG_FAIL, error: result.data}
+    }
+    return {type: UPDATE_DEPLOYMENT_CONFIG_SUCCESS, result: result.data}
+  }
+}
+
+export function CREATE_DEPLOYMENT_CONFIG (appName, envName, deployConfig) {
+  return async() => {
+    let result = await createDeploymentConfigAPI(appName, envName, deployConfig)
+    if (!resultOK(result)) {
+      return {type: CREATE_DEPLOYMENT_CONFIG_FAIL, error: result.data}
+    }
+    return {type: CREATE_DEPLOYMENT_CONFIG_SUCCESS, result: result.data}
+  }
+}
+
+export function DELETE_DEPLOYMENT_CONFIG (appName, envName) {
+  return async() => {
+    let result = await deleteDeploymentConfigAPI(appName, envName)
+    console.log(result)
+    if (!resultOK(result)) {
+      return {type: DELETE_DEPLOYMENT_CONFIG_FAIL, error: result.data}
+    }
+    return {type: DELETE_DEPLOYMENT_CONFIG_SUCCESS, result: result.data}
   }
 }
 

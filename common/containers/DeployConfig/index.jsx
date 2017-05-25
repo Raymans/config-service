@@ -3,25 +3,37 @@ import {connect} from 'react-redux'
 import PropTypes from 'prop-types'
 import DeployConfigDetailComponent from './components/DeployConfigDetailComponent'
 import DeployConfigDetailFormComponent from './components/DeployConfigDetailFormComponent'
-import {GET_DEPLOYMENT_CONFIG, UPDATE_INPUT_FIELD, CHANGE_MODE, STICK_SIDE_MENU} from 'actions/deployConfig'
-import {updateDeploymentConfigAPI, createDeploymentConfigAPI, deleteDeploymentConfigAPI} from 'api/DeployConfigSvc'
+import {
+  GET_DEPLOYMENT_CONFIG,
+  UPDATE_DEPLOYMENT_CONFIG,
+  CREATE_DEPLOYMENT_CONFIG,
+  DELETE_DEPLOYMENT_CONFIG,
+  UPDATE_INPUT_FIELD,
+  CHANGE_MODE,
+  STICK_SIDE_MENU
+} from 'actions/deployConfig'
 import _ from 'lodash'
 import './DeployConfig.scss'
 import {scroller} from 'react-scroll'
 
 class DeployConfigDetail extends Component {
   static propTypes = {
+    isLoading: PropTypes.bool,
     isCreateMode: PropTypes.bool,
     isEditMode: PropTypes.bool,
     isStickyMenu: PropTypes.bool,
     deploymentConfig: PropTypes.object,
     getDeploymentConfig: PropTypes.func.isRequired,
+    updateDeploymentConfig: PropTypes.func.isRequired,
+    createDeploymentConfig: PropTypes.func.isRequired,
+    deleteDeploymentConfig: PropTypes.func.isRequired,
     updateInputField: PropTypes.func.isRequired,
     enterEditMode: PropTypes.func.isRequired,
     enterViewMode: PropTypes.func.isRequired,
     changeSideMenuPos: PropTypes.func.isRequired,
     match: PropTypes.object,
-    history: PropTypes.object
+    history: PropTypes.object,
+    backToList: PropTypes.bool
   }
   state = {activeItem: 'basic'}
 
@@ -82,15 +94,14 @@ class DeployConfigDetail extends Component {
     }
     // TODO
     const {envName, appName} = this.props.match.params
+    this.props.enterViewMode()
     this.props.getDeploymentConfig(appName, envName)
-    setTimeout(this.props.enterViewMode, 1000)
   }
 
   handleDeleteClick = e => {
     e.preventDefault()
     const {envName, appName} = this.props.match.params
-    deleteDeploymentConfigAPI(appName, envName)
-    this.props.history.replace('')
+    this.props.deleteDeploymentConfig(appName, envName)
   }
 
   handleSideMenuClick = (e, {name}) => {
@@ -115,19 +126,14 @@ class DeployConfigDetail extends Component {
       result[data.key] = data.value
       return result
     }, {})
+    this.props.enterViewMode()
     if (this.props.isCreateMode) {
-      createDeploymentConfigAPI(appName, newEnvName, deploymentConfig)
-      // TODO
+      this.props.createDeploymentConfig(appName, newEnvName, deploymentConfig)
       this.props.history.replace(newEnvName)
-      this.props.getDeploymentConfig(appName, newEnvName)
     } else {
       const {envName, appName} = this.props.match.params
-      updateDeploymentConfigAPI(appName, envName, deploymentConfig)
-      // TODO
-      this.props.getDeploymentConfig(appName, envName)
+      this.props.updateDeploymentConfig(appName, envName, deploymentConfig)
     }
-    // TODO
-    setTimeout(this.props.enterViewMode, 1000)
   }
 
   componentDidMount () {
@@ -139,16 +145,20 @@ class DeployConfigDetail extends Component {
   }
 
   sideMenuStateChange (watcher) {
-    if (watcher.isAboveViewport) {
-      this.props.changeSideMenuPos(true)
-      return
+    this.props.changeSideMenuPos(watcher.isAboveViewport)
+  }
+
+  shouldComponentUpdate (nextProps) {
+    if (nextProps.backToList) {
+      nextProps.history.replace('')
+      return false
     }
-    this.props.changeSideMenuPos(false)
+    return true
   }
 
   render () {
     const {activeItem} = this.state
-    const {isEditMode, isCreateMode, isStickyMenu, deploymentConfig = {}} = this.props
+    const {isLoading, isEditMode, isCreateMode, isStickyMenu, deploymentConfig = {}} = this.props
     const {
       memory, instances, cpus, diskSpaceInMb, constraints,
       nexusConfiguration: nexus = {},
@@ -212,33 +222,40 @@ class DeployConfigDetail extends Component {
           handleSideMenuClick={this.handleSideMenuClick}
           sideMenuStateChange={::this.sideMenuStateChange}
           handleDeleteClick={this.handleDeleteClick}
-          handleEditClick={this.handleEditClick}/>
+          handleEditClick={this.handleEditClick}
+          isLoading={isLoading}/>
       )
     }
     const detailFormProps = {breadcrumbProps, deploymentConfig, titleProps, isStickyMenu, activeItem, isCreateMode}
     return (
-      <DeployConfigDetailFormComponent
-        {...detailFormProps}
-        handleInputChange={this.handleInputChange}
-        handleSideMenuClick={this.handleSideMenuClick}
-        sideMenuStateChange={::this.sideMenuStateChange}
-        handleRemovePortMappings={this.handleRemovePortMappings}
-        handleAddPortMappings={this.handleAddPortMappings}
-        handleAddHealthChecks={this.handleAddHealthChecks}
-        handleRemoveHealthChecks={this.handleRemoveHealthChecks}
-        handleAddEnvVariable={this.handleAddEnvVariable}
-        handleSubmit={this.handleSubmit}
-        handleCancelClick={this.handleCancelClick}
-      />
+      <div>
+        <DeployConfigDetailFormComponent
+          {...detailFormProps}
+          handleInputChange={this.handleInputChange}
+          handleSideMenuClick={this.handleSideMenuClick}
+          sideMenuStateChange={::this.sideMenuStateChange}
+          handleRemovePortMappings={this.handleRemovePortMappings}
+          handleAddPortMappings={this.handleAddPortMappings}
+          handleAddHealthChecks={this.handleAddHealthChecks}
+          handleRemoveHealthChecks={this.handleRemoveHealthChecks}
+          handleAddEnvVariable={this.handleAddEnvVariable}
+          handleSubmit={this.handleSubmit}
+          handleCancelClick={this.handleCancelClick}
+        />
+      </div>
+
     )
   }
 }
 
 function mapStateToProps (state) {
+  console.log('mapStateToProps')
   return {
     deploymentConfig: state.deployConfig.deploymentConfig,
     isEditMode: state.deployConfig.isEditMode,
-    isStickyMenu: state.deployConfig.isStickyMenu
+    isStickyMenu: state.deployConfig.isStickyMenu,
+    isLoading: state.deployConfig.isLoading,
+    backToList: state.deployConfig.backToList
   }
 }
 
@@ -246,6 +263,18 @@ function mapDispatchToProps (dispatch) {
   return {
     getDeploymentConfig: async(appName, envName) => {
       let result = await dispatch(GET_DEPLOYMENT_CONFIG(appName, envName))
+      return dispatch(result)
+    },
+    updateDeploymentConfig: async(appName, envName, deployConfig) => {
+      let result = await dispatch(UPDATE_DEPLOYMENT_CONFIG(appName, envName, deployConfig))
+      return dispatch(result)
+    },
+    createDeploymentConfig: async(appName, envName, deployConfig) => {
+      let result = await dispatch(CREATE_DEPLOYMENT_CONFIG(appName, envName, deployConfig))
+      return dispatch(result)
+    },
+    deleteDeploymentConfig: async(appName, envName, deployConfig) => {
+      let result = await dispatch(DELETE_DEPLOYMENT_CONFIG(appName, envName, deployConfig))
       return dispatch(result)
     },
     updateInputField: (name, value) =>

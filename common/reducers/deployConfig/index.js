@@ -1,6 +1,12 @@
 import {
   GET_DEPLOYMENT_CONFIG_SUCCESS,
   GET_DEPLOYMENT_CONFIG_FAIL,
+  UPDATE_DEPLOYMENT_CONFIG_SUCCESS,
+  UPDATE_DEPLOYMENT_CONFIG_FAIL,
+  CREATE_DEPLOYMENT_CONFIG_SUCCESS,
+  CREATE_DEPLOYMENT_CONFIG_FAIL,
+  DELETE_DEPLOYMENT_CONFIG_SUCCESS,
+  DELETE_DEPLOYMENT_CONFIG_FAIL,
   CHANGE_INPUT_FILED,
   CHANGE_TO_EDIT_MODE,
   CHANGE_TO_VIEW_MODE,
@@ -29,20 +35,31 @@ export const initialState = {
     }],
     envVariables: {},
     tempEnvVariables: [{key: '', value: ''}]
-  }
+  },
+  isLoading: true
 }
 
+const reduceEnvVariablesForInputForm = (envVariables) => {
+  return envVariables &&
+    _.map(envVariables, (key, val) => {
+      return {key: val, value: key}
+    })
+}
 export function deployConfig (state = initialState, action) {
   switch (action.type) {
     case GET_DEPLOYMENT_CONFIG_SUCCESS:
-      const envVariables = action.result.envVariables &&
-        _.map(action.result.envVariables, (key, val) => {
-          return {key: val, value: key}
-        })
-      action.result.tempEnvVariables = envVariables
+    case UPDATE_DEPLOYMENT_CONFIG_SUCCESS:
+    case CREATE_DEPLOYMENT_CONFIG_SUCCESS:
+      action.result.tempEnvVariables = reduceEnvVariablesForInputForm(action.result.envVariables)
       return {
         ...state,
-        deploymentConfig: action.result
+        deploymentConfig: action.result,
+        isLoading: false
+      }
+    case DELETE_DEPLOYMENT_CONFIG_SUCCESS:
+      return {
+        ...state,
+        backToList: true
       }
     case CHANGE_INPUT_FILED:
       let dc = _.cloneDeep(state.deploymentConfig)
@@ -51,8 +68,6 @@ export function deployConfig (state = initialState, action) {
         ...state,
         deploymentConfig: dc
       }
-    case GET_DEPLOYMENT_CONFIG_FAIL:
-      return state
     case CHANGE_TO_EDIT_MODE:
       return {
         ...state,
@@ -61,7 +76,8 @@ export function deployConfig (state = initialState, action) {
     case CHANGE_TO_VIEW_MODE:
       return {
         ...state,
-        isEditMode: false
+        isEditMode: false,
+        isLoading: true
       }
     case STICKY_SIDE_MENU:
       return {
@@ -72,6 +88,14 @@ export function deployConfig (state = initialState, action) {
       return {
         ...state,
         isStickyMenu: false
+      }
+    case GET_DEPLOYMENT_CONFIG_FAIL:
+    case UPDATE_DEPLOYMENT_CONFIG_FAIL:
+    case CREATE_DEPLOYMENT_CONFIG_FAIL:
+    case DELETE_DEPLOYMENT_CONFIG_FAIL:
+      return {
+        ...state,
+        isLoading: false
       }
     case LOCATION_CHANGE: {
       if (action.payload.pathname !== '/') {
