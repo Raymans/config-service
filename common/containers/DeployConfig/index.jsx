@@ -181,7 +181,7 @@ class DeployConfigDetail extends Component {
         {name: envName}
       ]
     }
-    const titleProps = {icon: 'cloud', content: isEditMode ? 'Create' : envName}
+    const titleProps = {icon: 'envira gallery', color: 'green', content: isEditMode ? 'Create' : envName}
     if (!isEditMode && !isCreateMode) {
       const gridsProps = {
         basic: {

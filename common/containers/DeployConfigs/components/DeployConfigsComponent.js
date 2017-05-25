@@ -1,6 +1,6 @@
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
-import {Segment, Button, Dimmer, Loader, Divider} from 'semantic-ui-react'
+import {Segment, Button, Dimmer, Loader} from 'semantic-ui-react'
 import {Breadcrumb, Title, Table} from 'components'
 import SearchComponent from 'components/common/SearchComponent'
 import {NavLink} from 'react-router-dom'
@@ -32,23 +32,36 @@ export default class DeployConfigsComponent extends Component {
     }
     )
 
+    const footer = (
+      <div>
+        <Button
+          floated='right'
+          icon='file'
+          labelPosition='left'
+          primary
+          size='small'
+          color='blue'
+          as={NavLink}
+          content='Create'
+          {...propsCreateBtn} />
+      </div>
+    )
+
     const tableProps = {
       sortable: true,
       headers: ['Env Name', 'Memory', 'Instances', 'Cpus', 'DiskSpaceInMb', 'Constraints'],
       rows: rows,
-      prefixDetailLink: `/apps/${appName}/deploy-configs`
+      prefixDetailLink: `/apps/${appName}/deploy-configs`,
+      footer
     }
     let noDeploymentConfigs = !deploymentConfigs || deploymentConfigs.length === 0
+
     return (
       <div>
         <Breadcrumb {...breadcrumbProps} />
         <Title {...titleProps}/>
 
-        <Segment basic floated='left'>
-          <Button icon='file' color='blue' content='Create' {...propsCreateBtn}/>
-        </Segment>
         <SearchComponent />
-        <Divider clearing/>
         <Segment basic>
           {noDeploymentConfigs &&
           <Dimmer active inverted>

@@ -16,7 +16,7 @@ export default class TitleComponent extends Component {
     const {icon, content} = this.props
 
     return (
-      <Header as='h1'>
+      <Header as='h2'>
         <Icon name={icon}/>
         <Header.Content>
           {content}

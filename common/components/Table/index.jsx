@@ -1,13 +1,14 @@
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
-import {Table, Menu, Icon} from 'semantic-ui-react'
+import {Table} from 'semantic-ui-react'
 import {NavLink} from 'react-router-dom'
 
 export default class TableComponent extends Component {
   static propTypes = {
     headers: PropTypes.array,
     rows: PropTypes.array,
-    prefixDetailLink: PropTypes.string
+    prefixDetailLink: PropTypes.string,
+    footer: PropTypes.obj
 
   }
 
@@ -16,7 +17,7 @@ export default class TableComponent extends Component {
   }
 
   render () {
-    const {headers, rows, prefixDetailLink, ...tableProps} = this.props
+    const {headers, rows, prefixDetailLink, footer, ...tableProps} = this.props
 
     let tableHeaders = headers.map((header, i) =>
       <Table.HeaderCell key={i}>{header}</Table.HeaderCell>
@@ -45,24 +46,15 @@ export default class TableComponent extends Component {
         <Table.Body>
           {tableRows}
         </Table.Body>
-        <Table.Footer>
+        {footer &&
+        <Table.Footer fullWidth>
           <Table.Row>
             <Table.HeaderCell colSpan={headers.length}>
-              <Menu floated='right' pagination>
-                <Menu.Item as='a' icon>
-                  <Icon name='left chevron'/>
-                </Menu.Item>
-                <Menu.Item as='a'>1</Menu.Item>
-                <Menu.Item as='a'>2</Menu.Item>
-                <Menu.Item as='a'>3</Menu.Item>
-                <Menu.Item as='a'>4</Menu.Item>
-                <Menu.Item as='a' icon>
-                  <Icon name='right chevron'/>
-                </Menu.Item>
-              </Menu>
+              {footer}
             </Table.HeaderCell>
           </Table.Row>
         </Table.Footer>
+        }
       </Table>
     )
   }

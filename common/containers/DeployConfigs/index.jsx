@@ -35,9 +35,9 @@ function mapStateToProps (state) {
 
 function mapDispatchToProps (dispatch) {
   return {
-    getDeploymentConfigs: async() => {
-      let result = await dispatch(GET_DEPLOYMENT_CONFIGS)
-      dispatch(result)
+    getDeploymentConfigs: async(appName) => {
+      let result = await dispatch(GET_DEPLOYMENT_CONFIGS(appName))
+      return dispatch(result)
     }
   }
 }

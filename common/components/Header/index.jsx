@@ -11,20 +11,19 @@ export default class Header extends Component {
 
   static propTypes = {
     title: PropTypes.string,
-    toggleSidebar: PropTypes.func,
-    isLoggedIn: PropTypes.bool
+    toggleSidebar: PropTypes.func
+    // isLoggedIn: PropTypes.bool
   }
 
   render () {
-    let {title, toggleSidebar, isLoggedIn} = this.props
+    let {title} = this.props
 
     return (
       <header>
         <div className="header-inner">
-          {isLoggedIn &&
-            <span className="navicon" onClick={toggleSidebar}>
-              <Icon name="content" />
-            </span>}
+            <span className="navicon">
+              <Icon name="dashboard" color="blue" />
+            </span>
           <span className="title">
             {title}
           </span>
