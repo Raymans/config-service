@@ -7,7 +7,8 @@
         "^actions$": "<rootDir>/common/actions",
         "^actions/auth$": "<rootDir>/common/actions/auth",
         "^actions/common$": "<rootDir>/common/actions/common",
-        "^actions/dashboard$": "<rootDir>/common/actions/dashboard",
+        "^actions/deployConfigs$": "<rootDir>/common/actions/deployConfigs",
+        "^actions/deployConfig$": "<rootDir>/common/actions/deployConfig",
         "^actions/inbox$": "<rootDir>/common/actions/inbox",
         "^actions/layout$": "<rootDir>/common/actions/layout",
 
@@ -16,7 +17,7 @@
         "^reducers$": "<rootDir>/common/reducers",
         "^reducers/auth$": "<rootDir>/common/reducers/auth",
         "^reducers/common$": "<rootDir>/common/reducers/common",
-        "^reducers/dashboard$": "<rootDir>/common/reducers/dashboard",
+        "^reducers/deployConfigs$": "<rootDir>/common/reducers/deployConfigs",
         "^reducers/inbox$": "<rootDir>/common/reducers/inbox",
         "^reducers/layout$": "<rootDir>/common/reducers/layout",
         "^reducers/login_component_reducer$": "<rootDir>/common/reducers/login_component_reducer",

@@ -1,405 +1,291 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
-import {Icon, Menu, Header, Breadcrumb, Grid, Segment, Form, Input, Button, Label, Table, Divider} from 'semantic-ui-react'
-import {appRouting} from 'routing'
+import PropTypes from 'prop-types'
+import DeployConfigDetailComponent from './components/DeployConfigDetailComponent'
+import DeployConfigDetailFormComponent from './components/DeployConfigDetailFormComponent'
+import {
+  GET_DEPLOYMENT_CONFIG,
+  UPDATE_DEPLOYMENT_CONFIG,
+  CREATE_DEPLOYMENT_CONFIG,
+  DELETE_DEPLOYMENT_CONFIG,
+  UPDATE_INPUT_FIELD,
+  CHANGE_MODE,
+  STICK_SIDE_MENU
+} from 'actions/deployConfig'
+import _ from 'lodash'
+import './DeployConfig.scss'
+import {scroller} from 'react-scroll'
 
-class DeployConfig extends Component {
-  static propTypes = {}
+class DeployConfigDetail extends Component {
+  static propTypes = {
+    isLoading: PropTypes.bool,
+    isCreateMode: PropTypes.bool,
+    isEditMode: PropTypes.bool,
+    isStickyMenu: PropTypes.bool,
+    deploymentConfig: PropTypes.object,
+    getDeploymentConfig: PropTypes.func.isRequired,
+    updateDeploymentConfig: PropTypes.func.isRequired,
+    createDeploymentConfig: PropTypes.func.isRequired,
+    deleteDeploymentConfig: PropTypes.func.isRequired,
+    updateInputField: PropTypes.func.isRequired,
+    enterEditMode: PropTypes.func.isRequired,
+    enterViewMode: PropTypes.func.isRequired,
+    changeSideMenuPos: PropTypes.func.isRequired,
+    match: PropTypes.object,
+    history: PropTypes.object,
+    backToList: PropTypes.bool
+  }
   state = {activeItem: 'basic'}
 
-  handleItemClick = (e, {name}) => this.setState({activeItem: name})
+  handleAddPortMappings = () => {
+    const portMappings = this.props.deploymentConfig.dockerConfiguration.portMappings || []
+    portMappings.push({
+      'containerPort': '',
+      'hostPort': '',
+      'protocol': ''
+    })
+    this.props.updateInputField('dockerConfiguration.portMappings', portMappings)
+  }
 
-  handleChange = (e, {value}) => this.setState({value})
+  handleAddHealthChecks = () => {
+    const healthChecks = this.props.deploymentConfig.healthChecks || []
+    healthChecks.push({
+      protocol: '',
+      command: '',
+      gracePeriodSeconds: 0,
+      intervalSeconds: 0,
+      timeoutSeconds: 0,
+      maxConsecutiveFailures: 0
+    })
+    this.props.updateInputField('healthChecks', healthChecks)
+  }
 
-  InputExampleRightLabeledBasic = () => (
-    <Input
-      label={{basic: true, content: 'MB', color: 'teal'}}
-      labelPosition='right'
-      placeholder='diskSpace'
-    />
-  )
+  handleAddEnvVariable = () => {
+    const tempEnvVariables = this.props.deploymentConfig.tempEnvVariables || []
+    tempEnvVariables.push({
+      'key': '',
+      'value': ''
+    })
+    this.props.updateInputField('tempEnvVariables', tempEnvVariables)
+  }
+
+  handleRemoveHealthChecks = (e, {index}) => {
+    const healthChecks = this.props.deploymentConfig.healthChecks || []
+    const hcs = _.filter(healthChecks, (p, i) => {
+      return i !== index
+    })
+    this.props.updateInputField('healthChecks', hcs)
+  }
+
+  handleRemovePortMappings = (e, {index}) => {
+    const portMappings = this.props.deploymentConfig.dockerConfiguration.portMappings || []
+    const pms = _.filter(portMappings, (p, i) => {
+      return i !== index
+    })
+    this.props.updateInputField('dockerConfiguration.portMappings', pms)
+  }
+
+  handleEditClick = () => this.props.enterEditMode()
+
+  handleCancelClick = () => {
+    if (this.props.isCreateMode) {
+      this.props.history.replace('')
+      return
+    }
+    // TODO
+    const {envName, appName} = this.props.match.params
+    this.props.enterViewMode()
+    this.props.getDeploymentConfig(appName, envName)
+  }
+
+  handleDeleteClick = e => {
+    e.preventDefault()
+    const {envName, appName} = this.props.match.params
+    this.props.deleteDeploymentConfig(appName, envName)
+  }
+
+  handleSideMenuClick = (e, {name}) => {
+    this.setState({activeItem: name})
+    scroller.scrollTo(name, {
+      duration: 1000,
+      smooth: 'easeInOutQuint',
+      offset: -80
+    })
+  }
+
+  handleInputChange = (e, {name, value}) => {
+    this.props.updateInputField(name, value)
+  }
+
+  handleSubmit = e => {
+    e.preventDefault()
+    const {appName} = this.props.match.params
+    const {tempEnvVariables, newEnvName, ...deploymentConfig} = this.props.deploymentConfig
+    deploymentConfig.envVariables = _.reduce(tempEnvVariables, function (result, data) {
+      if (!data.key) return result
+      result[data.key] = data.value
+      return result
+    }, {})
+    this.props.enterViewMode()
+    if (this.props.isCreateMode) {
+      this.props.createDeploymentConfig(appName, newEnvName, deploymentConfig)
+      this.props.history.replace(newEnvName)
+    } else {
+      const {envName, appName} = this.props.match.params
+      this.props.updateDeploymentConfig(appName, envName, deploymentConfig)
+    }
+  }
+
+  componentDidMount () {
+    if (this.props.isCreateMode) {
+      return
+    }
+    const {appName, envName} = this.props.match.params
+    this.props.getDeploymentConfig(appName, envName)
+  }
+
+  sideMenuStateChange (watcher) {
+    this.props.changeSideMenuPos(watcher.isAboveViewport)
+  }
+
+  shouldComponentUpdate (nextProps) {
+    if (nextProps.backToList) {
+      nextProps.history.replace('')
+      return false
+    }
+    return true
+  }
 
   render () {
-    const {value, activeItem} = this.state
-    const matchedRoutes = appRouting.filter(a => a.path === location.pathname)
-    const header = (
-      <Header as='h1'>
-        <Icon name='cloud'/>
-        <Header.Content>{matchedRoutes[0].isEditMode ? 'Create' : 'Staging'}</Header.Content>
-      </Header>
-    )
-    const breadcrumb = (
-      <Breadcrumb>
-        <Breadcrumb.Section link>Home</Breadcrumb.Section>
-        <Breadcrumb.Divider/>
-        <Breadcrumb.Section link>Applications</Breadcrumb.Section>
-        <Breadcrumb.Divider/>
-        <Breadcrumb.Section active>Deployment Configurations</Breadcrumb.Section>
-      </Breadcrumb>
-    )
-    if (!matchedRoutes[0].isEditMode) {
+    const {activeItem} = this.state
+    const {isLoading, isEditMode, isCreateMode, isStickyMenu, deploymentConfig = {}} = this.props
+    const {
+      memory, instances, cpus, diskSpaceInMb, constraints,
+      nexusConfiguration: nexus = {},
+      dockerConfiguration: docker = {},
+      marathonConfiguration: marathon = {},
+      envVariables = {},
+      healthChecks = []
+    } =
+      deploymentConfig
+    const {groupId, artifactId, repositoryName, artifactType} = nexus
+    const {dockerRegistryUrl, imageName, pullImageOnEveryLaunch, networkType, portMappings} = docker
+    const {marathonUrl, marathonUser, marathonPassword} = marathon
+
+    const {envName = 'Create', appName} = this.props.match.params
+    const breadcrumbProps = {
+      navs: [
+        {name: 'HOME', url: '/'},
+        {name: 'APPLICATION', url: '/'},
+        {name: 'Deployment Configurations', url: `/apps/${appName}/deploy-configs`},
+        {name: envName}
+      ]
+    }
+    const titleProps = {icon: 'envira gallery', color: 'green', content: isEditMode ? 'Create' : envName}
+    if (!isEditMode && !isCreateMode) {
+      const gridsProps = {
+        basic: {
+          title: 'Basic',
+          data: [{memory, instances, cpus, diskSpaceInMb, constraints}],
+          titleColor: 'black'
+        },
+        nexus: {
+          title: 'Nexus',
+          data: [{groupId, artifactId, repositoryName, artifactType}],
+          titleColor: 'grey'
+        },
+        docker: {
+          title: 'Docker',
+          data: [{dockerRegistryUrl, imageName, pullImageOnEveryLaunch, networkType, portMappings}],
+          titleColor: 'blue   '
+        },
+        marathon: {
+          title: 'Marathon',
+          data: [{marathonUrl, marathonUser, marathonPassword}],
+          titleColor: 'olive'
+        },
+        envVariables: {
+          title: 'Env Variables',
+          data: [envVariables],
+          titleColor: 'green'
+        },
+        healthChecks: {
+          title: 'Health Checks',
+          data: healthChecks,
+          titleColor: 'red'
+        }
+      }
+      const detailProps = {breadcrumbProps, gridsProps, titleProps, isStickyMenu, activeItem}
       return (
-        <div>
-          {breadcrumb}
-          {header}
-
-          <Grid>
-            <Grid.Column width={2}>
-              <Menu fluid vertical tabular>
-                <Menu.Item name='basic' active={activeItem === 'basic'} onClick={this.handleItemClick}/>
-                <Menu.Item name='nexus' active={activeItem === 'nexus'} onClick={this.handleItemClick}/>
-                <Menu.Item name='docker' active={activeItem === 'docker'} onClick={this.handleItemClick}/>
-                <Menu.Item name='marathon' active={activeItem === 'marathon'} onClick={this.handleItemClick}/>
-                <Menu.Item name='envVariables' active={activeItem === 'envVariables'} onClick={this.handleItemClick}/>
-                <Menu.Item name='healthChecks' active={activeItem === 'healthChecks'} onClick={this.handleItemClick}/>
-              </Menu>
-            </Grid.Column>
-
-            <Grid.Column width={12}>
-              <Button.Group floated='right'>
-                <Button icon="delete" color='red' content='Delete'/>
-                <Button.Or />
-                <Button icon="file" color='blue' content='Create'/>
-              </Button.Group>
-              <Divider fitted clearing/>
-                <Segment>
-
-                  <Label as='a' color='black' ribbon size="large">Overview</Label>
-                  <Table definition>
-                    <Table.Body>
-                      <Table.Row>
-                        <Table.Cell collapsing>memory</Table.Cell>
-                        <Table.Cell></Table.Cell>
-                      </Table.Row>
-                      <Table.Row>
-                        <Table.Cell>instances</Table.Cell>
-                        <Table.Cell>instances</Table.Cell>
-                      </Table.Row>
-                      <Table.Row>
-                        <Table.Cell>cpus</Table.Cell>
-                        <Table.Cell>cpus</Table.Cell>
-                      </Table.Row>
-                      <Table.Row>
-                        <Table.Cell>diskSpace</Table.Cell>
-                        <Table.Cell>diskSpace</Table.Cell>
-                      </Table.Row>
-                      <Table.Row>
-                        <Table.Cell>constraints</Table.Cell>
-                        <Table.Cell>constraints</Table.Cell>
-                      </Table.Row>
-                      <Table.Row>
-                        <Table.Cell>consulUrl</Table.Cell>
-                        <Table.Cell>consulUrl</Table.Cell>
-                      </Table.Row>
-                    </Table.Body>
-                  </Table>
-                </Segment>
-              <Segment>
-                <Label as='a' color='grey' size="large" ribbon>Nexus</Label>
-                <Table definition>
-                  <Table.Body>
-                    <Table.Row>
-                      <Table.Cell collapsing>groupId</Table.Cell>
-                      <Table.Cell></Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>artifactId</Table.Cell>
-                      <Table.Cell>instances</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>repositoryName</Table.Cell>
-                      <Table.Cell>cpus</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>artifactType</Table.Cell>
-                      <Table.Cell>diskSpace</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>baseUrl</Table.Cell>
-                      <Table.Cell>constraints</Table.Cell>
-                    </Table.Row>
-                  </Table.Body>
-                </Table>
-              </Segment>
-              <Segment>
-                <Label as='a' color='blue' size="large" ribbon>Docker</Label>
-                <Table definition>
-                  <Table.Body>
-                    <Table.Row>
-                      <Table.Cell collapsing>imageName</Table.Cell>
-                      <Table.Cell></Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>dockerRegistryUrl</Table.Cell>
-                      <Table.Cell>instances</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>pullImageOnEveryLaunch</Table.Cell>
-                      <Table.Cell>cpus</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>networkType</Table.Cell>
-                      <Table.Cell>diskSpace</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>containerPort</Table.Cell>
-                      <Table.Cell>diskSpace</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>hostPort</Table.Cell>
-                      <Table.Cell>diskSpace</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>protocol</Table.Cell>
-                      <Table.Cell>diskSpace</Table.Cell>
-                    </Table.Row>
-                  </Table.Body>
-                </Table>
-              </Segment>
-              <Segment>
-                <Label as='a' color='olive' size="large" ribbon>Marathon</Label>
-                <Table definition>
-                  <Table.Body>
-                    <Table.Row>
-                      <Table.Cell collapsing>marathonUrl</Table.Cell>
-                      <Table.Cell></Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>marathonUser</Table.Cell>
-                      <Table.Cell>instances</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>marathonPassword</Table.Cell>
-                      <Table.Cell>cpus</Table.Cell>
-                    </Table.Row>
-                  </Table.Body>
-                </Table>
-              </Segment>
-
-              <Segment>
-                <Label as='a' color='green' size="large" ribbon>Env Variables</Label>
-                <Table definition>
-                  <Table.Body>
-                    <Table.Row>
-                      <Table.Cell collapsing>SERVICE_NAME</Table.Cell>
-                      <Table.Cell></Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>SERVICE_TAGS</Table.Cell>
-                      <Table.Cell>instances</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>SPRING_PROFILES_ACTIVE</Table.Cell>
-                      <Table.Cell>cpus</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>SERVICE_REGION</Table.Cell>
-                      <Table.Cell>cpus</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>SERVICE_FAULTZONE</Table.Cell>
-                      <Table.Cell>cpus</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>SERVICE_CHECK_HTTP</Table.Cell>
-                      <Table.Cell>cpus</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>SERVICE_CHECK_INTERVAL</Table.Cell>
-                      <Table.Cell>cpus</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>SERVICE_CHECK_TIMEOUT</Table.Cell>
-                      <Table.Cell>cpus</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>spring_cloud_client_hostname</Table.Cell>
-                      <Table.Cell>cpus</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>eureka_instance_non-secure-port</Table.Cell>
-                      <Table.Cell>cpus</Table.Cell>
-                    </Table.Row>
-                  </Table.Body>
-                </Table>
-              </Segment>
-
-              <Segment>
-                <Label as='a' color='red' size="large" ribbon>Health Checks</Label>
-                <Table definition>
-                  <Table.Body>
-                    <Table.Row>
-                      <Table.Cell collapsing>protocol</Table.Cell>
-                      <Table.Cell>cpus</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>command</Table.Cell>
-                      <Table.Cell>cpus</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>gracePeriodSeconds</Table.Cell>
-                      <Table.Cell>cpus</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>intervalSeconds</Table.Cell>
-                      <Table.Cell>cpus</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>timeoutSeconds</Table.Cell>
-                      <Table.Cell>cpus</Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                      <Table.Cell>maxConsecutiveFailures</Table.Cell>
-                      <Table.Cell>cpus</Table.Cell>
-                    </Table.Row>
-                  </Table.Body>
-                </Table>
-              </Segment>
-            </Grid.Column>
-          </Grid>
-
-        </div>
+        <DeployConfigDetailComponent
+          {...detailProps}
+          handleSideMenuClick={this.handleSideMenuClick}
+          sideMenuStateChange={::this.sideMenuStateChange}
+          handleDeleteClick={this.handleDeleteClick}
+          handleEditClick={this.handleEditClick}
+          isLoading={isLoading}/>
       )
     }
-    // const {isEditMode} = this.props
-    // if (!isEditMode) {
-    //   return (<div></div>)
-    // }
-
+    const detailFormProps = {breadcrumbProps, deploymentConfig, titleProps, isStickyMenu, activeItem, isCreateMode}
     return (
       <div>
-        {breadcrumb}
-        {header}
-
-        <Grid>
-          <Grid.Column width={2}>
-            <Menu fluid vertical tabular>
-              <Menu.Item name='basic' active={activeItem === 'basic'} onClick={this.handleItemClick}/>
-              <Menu.Item name='nexus' active={activeItem === 'nexus'} onClick={this.handleItemClick}/>
-              <Menu.Item name='docker' active={activeItem === 'docker'} onClick={this.handleItemClick}/>
-              <Menu.Item name='marathon' active={activeItem === 'marathon'} onClick={this.handleItemClick}/>
-              <Menu.Item name='envVariables' active={activeItem === 'envVariables'} onClick={this.handleItemClick}/>
-              <Menu.Item name='healthChecks' active={activeItem === 'healthChecks'} onClick={this.handleItemClick}/>
-            </Menu>
-          </Grid.Column>
-
-          <Grid.Column stretched width={12}>
-            <Form>
-              <Segment>
-                <Label as='a' color='red' size="large" ribbon>Overview</Label>
-                <Form.Group widths='equal'>
-                  <Form.Input label='memory' placeholder='Memory' required/>
-                  <Form.Input label='instances' placeholder='instances' required/>
-                </Form.Group>
-                <Form.Group widths='equal'>
-                  <Form.Input label='cpus' placeholder='cpus' required/>
-                  <Form.Input control={this.InputExampleRightLabeledBasic} label='diskSpace' placeholder='diskSpace'
-                              required/>
-                </Form.Group>
-
-                <Form.Input label='constraints' placeholder='constraints' required/>
-                <Form.Input label='consulUrl' placeholder='consulUrl'/>
-                <Form.Group inline>
-                  <label>Size</label>
-                  <Form.Radio label='Small' value='sm' checked={value === 'sm'} onChange={this.handleChange}/>
-                  <Form.Radio label='Medium' value='md' checked={value === 'md'} onChange={this.handleChange}/>
-                  <Form.Radio label='Large' value='lg' checked={value === 'lg'} onChange={this.handleChange}/>
-                </Form.Group>
-                <Form.TextArea label='About' placeholder='Tell us more about you...'/>
-                <Form.Checkbox label='I agree to the Terms and Conditions'/>
-              </Segment>
-              <Header/>
-              <Header as='h3'>
-                <Icon name='plug'/>
-                <Header.Content>Nexus</Header.Content>
-              </Header>
-              <Segment>
-                <Form.Input label='groupId' placeholder='groupId' required/>
-                <Form.Input label='artifactId' placeholder='artifactId' required/>
-                <Form.Input label='repositoryName' placeholder='repositoryName' required/>
-                <Form.Input label='artifactType' placeholder='artifactType' required/>
-                <Form.Input label='baseUrl' placeholder='baseUrl'/>
-              </Segment>
-
-              <Header as='h3'>
-                <Icon name='plug'/>
-                <Header.Content>Docker</Header.Content>
-              </Header>
-              <Segment>
-                <Form.Input label='imageName' placeholder='imageName' required/>
-                <Form.Input label='dockerRegistryUrl' placeholder='dockerRegistryUrl' required/>
-                <Form.Input label='pullImageOnEveryLaunch' placeholder='pullImageOnEveryLaunch' required/>
-                <Form.Input label='networkType' placeholder='networkType' required/>
-                <Segment>
-                  <Form.Input label='containerPort' placeholder='containerPort' required/>
-                  <Form.Input label='hostPort' placeholder='hostPort' required/>
-                  <Form.Input label='protocol' placeholder='protocol' required/>
-                </Segment>
-
-              </Segment>
-
-              <Header as='h3'>
-                <Icon name='plug'/>
-                <Header.Content>Marathon</Header.Content>
-              </Header>
-              <Segment>
-                <Form.Input label='marathonUrl' placeholder='marathonUrl' required/>
-                <Form.Input label='marathonUser' placeholder='marathonUser' required/>
-                <Form.Input label='marathonPassword' placeholder='marathonPassword' required/>
-              </Segment>
-
-              <Header as='h3'>
-                <Icon name='plug'/>
-                <Header.Content>Env Variables</Header.Content>
-              </Header>
-              <Segment>
-                <Form.Input label='SERVICE_NAME' placeholder='SERVICE_NAME' required/>
-                <Form.Input label='SERVICE_TAGS' placeholder='SERVICE_TAGS' required/>
-                <Form.Input label='SPRING_PROFILES_ACTIVE' placeholder='SPRING_PROFILES_ACTIVE' required/>
-                <Form.Input label='SERVICE_REGION' placeholder='SERVICE_REGION' required/>
-                <Form.Input label='SERVICE_FAULTZONE' placeholder='SERVICE_FAULTZONE' required/>
-                <Form.Input label='SERVICE_CHECK_HTTP' placeholder='SERVICE_CHECK_HTTP' required/>
-                <Form.Input label='SERVICE_CHECK_INTERVAL' placeholder='SERVICE_CHECK_INTERVAL' required/>
-                <Form.Input label='SERVICE_CHECK_TIMEOUT' placeholder='SERVICE_CHECK_TIMEOUT' required/>
-                <Form.Input label='spring_cloud_client_hostname' placeholder='spring_cloud_client_hostname' required/>
-                <Form.Input label='eureka_instance_non-secure-port' placeholder='eureka_instance_non-secure-port'
-                            required/>
-              </Segment>
-
-              <Header as='h3'>
-                <Icon name='plug'/>
-                <Header.Content>Health Checks</Header.Content>
-              </Header>
-              <Segment>
-                <Segment>
-                  <Form.Input label='protocol' placeholder='protocol' required/>
-                  <Form.Input label='command' placeholder='command' required/>
-                  <Form.Input label='gracePeriodSeconds' placeholder='gracePeriodSeconds' required/>
-                  <Form.Input label='intervalSeconds' placeholder='intervalSeconds' required/>
-                  <Form.Input label='timeoutSeconds' placeholder='timeoutSeconds' required/>
-                  <Form.Input label='maxConsecutiveFailures' placeholder='maxConsecutiveFailures' required/>
-                </Segment>
-              </Segment>
-
-              <Button.Group>
-                <Button>Cancel</Button>
-                <Button.Or />
-                <Button primary>Save</Button>
-              </Button.Group>
-            </Form>
-          </Grid.Column>
-        </Grid>
+        <DeployConfigDetailFormComponent
+          {...detailFormProps}
+          handleInputChange={this.handleInputChange}
+          handleSideMenuClick={this.handleSideMenuClick}
+          sideMenuStateChange={::this.sideMenuStateChange}
+          handleRemovePortMappings={this.handleRemovePortMappings}
+          handleAddPortMappings={this.handleAddPortMappings}
+          handleAddHealthChecks={this.handleAddHealthChecks}
+          handleRemoveHealthChecks={this.handleRemoveHealthChecks}
+          handleAddEnvVariable={this.handleAddEnvVariable}
+          handleSubmit={this.handleSubmit}
+          handleCancelClick={this.handleCancelClick}
+        />
       </div>
+
     )
   }
 }
 
 function mapStateToProps (state) {
-  return {}
+  console.log('mapStateToProps')
+  return {
+    deploymentConfig: state.deployConfig.deploymentConfig,
+    isEditMode: state.deployConfig.isEditMode,
+    isStickyMenu: state.deployConfig.isStickyMenu,
+    isLoading: state.deployConfig.isLoading,
+    backToList: state.deployConfig.backToList
+  }
 }
 
 function mapDispatchToProps (dispatch) {
-  return {}
+  return {
+    getDeploymentConfig: async(appName, envName) => {
+      let result = await dispatch(GET_DEPLOYMENT_CONFIG(appName, envName))
+      return dispatch(result)
+    },
+    updateDeploymentConfig: async(appName, envName, deployConfig) => {
+      let result = await dispatch(UPDATE_DEPLOYMENT_CONFIG(appName, envName, deployConfig))
+      return dispatch(result)
+    },
+    createDeploymentConfig: async(appName, envName, deployConfig) => {
+      let result = await dispatch(CREATE_DEPLOYMENT_CONFIG(appName, envName, deployConfig))
+      return dispatch(result)
+    },
+    deleteDeploymentConfig: async(appName, envName, deployConfig) => {
+      let result = await dispatch(DELETE_DEPLOYMENT_CONFIG(appName, envName, deployConfig))
+      return dispatch(result)
+    },
+    updateInputField: (name, value) =>
+      dispatch(UPDATE_INPUT_FIELD(name, value)),
+    enterEditMode: () =>
+      dispatch(CHANGE_MODE(true)),
+    enterViewMode: () =>
+      dispatch(CHANGE_MODE(false)),
+    changeSideMenuPos: (isSticky) =>
+      dispatch(STICK_SIDE_MENU(isSticky))
+  }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(DeployConfig)
+export default connect(mapStateToProps, mapDispatchToProps)(DeployConfigDetail)

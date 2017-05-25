@@ -6,7 +6,7 @@ import { getLocalToken } from 'api/AuthSvc'
 
 function requestWrapper (method) {
   return async function (url, data = null, params = {}) {
-    if (method === 'GET') {
+    if (method === 'GET' || method === 'DELETE') {
       // is it a GET?
       // GET doesn't have data
       params = data
@@ -30,11 +30,11 @@ function requestWrapper (method) {
     if (url.match(/^https?:\/\//gi) > -1) {
       let token = getLocalToken()
       if (token) {
-        defaults.headers['Authorization'] = `JWT ${token}`
+        defaults.headers['Authorization'] = `Basic YWRtaW46MTIzNDU2`
       }
       url = window.BASE_API + url
     }
-
+    defaults.headers['Authorization'] = `Basic YWRtaW46MTIzNDU2`
     if (data) {
       defaults.body = data
     }
@@ -62,7 +62,7 @@ async function parseJSON (res) {
   try {
     json = await res.json()
   } catch (e) {
-    return { data: {}, ok: false }
+    return { data: {}, ok: res.ok }
   }
 
   // simplest validation ever, ahah :)

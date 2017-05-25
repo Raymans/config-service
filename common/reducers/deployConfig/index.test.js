@@ -1,5 +1,5 @@
 /* eslint-disable */
-import {dashboard as reducer, initialState} from 'reducers/dashboard'
+import {deployConfigs as reducer, initialState} from 'reducers/deployConfigs'
 import * as actions from 'actions'
 
 
@@ -27,7 +27,7 @@ describe('DASHBOARD REDUCER', () => {
     it('should handle GET_STATISTICS_SUCCESS', () => {
         expect(reducer(initialState, GET_STATISTICS_SUCCESS)).toEqual({
             ...initialState,
-            statistics: ["hello"]
+            deploymentConfigs: ["hello"]
         })
     })
 

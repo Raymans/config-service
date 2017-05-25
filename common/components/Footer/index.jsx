@@ -11,18 +11,15 @@ export default class Footer extends Component {
   render () {
     return (
       <footer>
-          <div className="footer-inner">
-              <Grid>
+        <div className="footer-inner">
+          <Grid>
             <Grid.Row>
               <Grid.Column width={12}>
-                <a href="/deploy-config">
+                <a href="https://github.com/Raymans/config-service">
                   <Header as="h3" inverted>
-                    <Icon name="github" />
+                    <Icon name="github"/>
                     <Header.Content>
-                      React-Semantic.UI-Start
-                      <Header.Subheader>
-                        Cash me on @Github howbow dah?
-                      </Header.Subheader>
+                      React-DR Apps Dashboard
                     </Header.Content>
                   </Header>
                 </a>

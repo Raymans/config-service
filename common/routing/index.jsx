@@ -1,21 +1,18 @@
 import React from 'react'
 import {Route, Redirect, Switch} from 'react-router'
 import {createBrowserHistory} from 'history'
-import {App, Inbox, Dashboard, Login, DeployConfig} from 'containers'
+import {App, Inbox, DeployConfigs, Login, DeployConfig} from 'containers'
 import {RouteAuth} from 'components'
 
 export const history = getHistory()
 
+const DeployConfigEdit = props => {
+  return (
+    <DeployConfig isCreateMode {...props} />
+  )
+}
+
 export const appRouting = [
-  {
-    path: '/',
-    icon: 'newspaper',
-    name: 'Deploy Configs',
-    exact: true,
-    sidebarVisible: true,
-    tag: RouteAuth,
-    component: Dashboard
-  },
   {
     path: '/application',
     name: 'Application',
@@ -28,18 +25,8 @@ export const appRouting = [
   {
     path: '/inbox',
     name: 'Resources',
-    exact: true,
-    icon: 'comments outline',
-    sidebarVisible: true,
     tag: RouteAuth,
     component: Inbox
-  },
-  {
-    external: true,
-    path: 'https://github.com/Metnew/react-semantic.ui-starter',
-    icon: 'github',
-    name: 'Properties',
-    sidebarVisible: true
   },
   {
     path: '/auth',
@@ -48,18 +35,22 @@ export const appRouting = [
     component: Login
   },
   {
-    path: '/deploy-config/create',
-    name: 'DeployConfig',
+    path: '/apps/:appName/deploy-configs/create',
+    name: 'Deploy Config - Create',
     tag: Route,
-    isEditMode: true,
+    component: DeployConfigEdit
+  },
+  {
+    path: '/apps/:appName/deploy-configs/:envName',
+    name: 'Deploy Config Detail',
+    tag: Route,
     component: DeployConfig
   },
   {
-    path: '/deploy-config',
-    name: 'DeployConfig',
-    tag: Route,
-    isEditMode: false,
-    component: DeployConfig
+    path: '/apps/:appName/deploy-configs',
+    name: 'Deploy Configs',
+    tag: RouteAuth,
+    component: DeployConfigs
   }
 
 ]
@@ -87,7 +78,7 @@ export const Routing = authCheck => {
     <App>
       <Switch>
         {routesRendered}
-        <Redirect to="/"/>
+        <Redirect to="/apps/springmaven/deploy-configs"/>
       </Switch>
     </App>
   )

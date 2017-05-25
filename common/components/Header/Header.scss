@@ -38,14 +38,11 @@ header {
             padding: 12px;
             line-height: 1;
             font-size: 24px;
-            @include respond-to('lg') {
-                display: none;
-            }
         }
 
         span.title {
             line-height: 1;
-            font-size: 24px;
+            font-size: 30px;
             align-items: center;
             display: flex;
         }

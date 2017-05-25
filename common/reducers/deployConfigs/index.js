@@ -1,18 +1,18 @@
-import { GET_STATISTICS_SUCCESS, GET_STATISTICS_FAIL } from 'actions/dashboard'
+import { GET_DEPLOYMENT_CONFIGS_SUCCESS, GET_DEPLOYMENT_CONFIGS_FAIL } from 'actions/deployConfigs'
 import { LOCATION_CHANGE } from 'actions/common'
 
 export const initialState = {
-  statistics: []
+  deploymentConfigs: []
 }
 
-export function dashboard (state = initialState, action) {
+export function deployConfigs (state = initialState, action) {
   switch (action.type) {
-    case GET_STATISTICS_SUCCESS:
+    case GET_DEPLOYMENT_CONFIGS_SUCCESS:
       return {
         ...state,
-        statistics: action.result
+        deploymentConfigs: action.result
       }
-    case GET_STATISTICS_FAIL:
+    case GET_DEPLOYMENT_CONFIGS_FAIL:
       return state
     case LOCATION_CHANGE: {
       if (action.payload.pathname !== '/') {
