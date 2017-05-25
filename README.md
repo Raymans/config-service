@@ -1,10 +1,9 @@
-# React-Semantic.UI-Starter
+# DR application dashboard
+The project is a fork from React-Semantic.UI-Starter
 
 ## Out-of-box:
 
 ![](https://github.com/Metnew/react-semantic.ui-starter/blob/for-gh/screen.gif)
-
-## DEMO: [You can find it here](https://metnew.github.io/react-semantic.ui-starter/)
 
 [![Build Status](https://travis-ci.org/Metnew/react-semantic.ui-starter.svg?branch=master)](https://travis-ci.org/Metnew/react-semantic.ui-starter)
 [![codecov](https://codecov.io/gh/Metnew/react-semantic.ui-starter/branch/master/graph/badge.svg)](https://codecov.io/gh/Metnew/react-semantic.ui-starter)
