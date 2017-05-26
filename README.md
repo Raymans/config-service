@@ -44,7 +44,6 @@ npm install
 
 ```bash
 npm run dev # run app in dev mode
-npm run db  # run mock db for app(from another process)
 ```
 
 #### Build:
