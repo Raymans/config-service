@@ -10,7 +10,7 @@ export default class DeployConfigDetailFormComponent extends PureComponent {
     titleProps: PropTypes.obj,
     isStickyMenu: PropTypes.bool,
     deploymentConfig: PropTypes.obj,
-    activeItem: PropTypes.string,
+    activeSideMenuItem: PropTypes.string,
     handleSideMenuClick: PropTypes.func,
     sideMenuStateChange: PropTypes.func,
     handleCancelClick: PropTypes.func,
@@ -40,7 +40,7 @@ export default class DeployConfigDetailFormComponent extends PureComponent {
       breadcrumbProps,
       titleProps,
       isStickyMenu,
-      activeItem,
+      activeSideMenuItem,
       handleSideMenuClick,
       handleCancelClick,
       isCreateMode,
@@ -72,7 +72,7 @@ export default class DeployConfigDetailFormComponent extends PureComponent {
         <Title {...titleProps}/>
         <Grid>
           <Grid.Column width={2}>
-            <SideMenuComponent activeItem={activeItem} handleMenuClick={handleSideMenuClick} isSticky={isStickyMenu}
+            <SideMenuComponent activeItem={activeSideMenuItem} handleMenuClick={handleSideMenuClick} isSticky={isStickyMenu}
                                stateChange={sideMenuStateChange}/>
           </Grid.Column>
           <Grid.Column stretched width={12}>

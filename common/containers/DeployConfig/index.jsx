@@ -10,7 +10,8 @@ import {
   DELETE_DEPLOYMENT_CONFIG,
   UPDATE_INPUT_FIELD,
   CHANGE_MODE,
-  STICK_SIDE_MENU
+  STICK_SIDE_MENU,
+  ACTIVATE_SIDE_MENU_ITEM
 } from 'actions/deployConfig'
 import _ from 'lodash'
 import './DeployConfig.scss'
@@ -31,11 +32,12 @@ class DeployConfigDetail extends Component {
     enterEditMode: PropTypes.func.isRequired,
     enterViewMode: PropTypes.func.isRequired,
     changeSideMenuPos: PropTypes.func.isRequired,
+    changeActiveSideMenuItem: PropTypes.func.isRequired,
+    activeSideMenuItem: PropTypes.obj,
     match: PropTypes.object,
     history: PropTypes.object,
     backToList: PropTypes.bool
   }
-  state = {activeItem: 'basic'}
 
   handleAddPortMappings = () => {
     const portMappings = this.props.deploymentConfig.dockerConfiguration.portMappings || []
@@ -105,7 +107,7 @@ class DeployConfigDetail extends Component {
   }
 
   handleSideMenuClick = (e, {name}) => {
-    this.setState({activeItem: name})
+    this.props.changeActiveSideMenuItem(name)
     scroller.scrollTo(name, {
       duration: 1000,
       smooth: 'easeInOutQuint',
@@ -157,20 +159,7 @@ class DeployConfigDetail extends Component {
   }
 
   render () {
-    const {activeItem} = this.state
-    const {isLoading, isEditMode, isCreateMode, isStickyMenu, deploymentConfig = {}} = this.props
-    const {
-      memory, instances, cpus, diskSpaceInMb, constraints,
-      nexusConfiguration: nexus = {},
-      dockerConfiguration: docker = {},
-      marathonConfiguration: marathon = {},
-      envVariables = {},
-      healthChecks = []
-    } =
-      deploymentConfig
-    const {groupId, artifactId, repositoryName, artifactType} = nexus
-    const {dockerRegistryUrl, imageName, pullImageOnEveryLaunch, networkType, portMappings} = docker
-    const {marathonUrl, marathonUser, marathonPassword} = marathon
+    const {isLoading, isEditMode, isCreateMode, isStickyMenu, activeSideMenuItem, deploymentConfig = {}} = this.props
 
     const {envName = 'Create', appName} = this.props.match.params
     const breadcrumbProps = {
@@ -182,53 +171,10 @@ class DeployConfigDetail extends Component {
       ]
     }
     const titleProps = {icon: 'envira gallery', color: 'green', content: isEditMode ? 'Create' : envName}
-    if (!isEditMode && !isCreateMode) {
-      const gridsProps = {
-        basic: {
-          title: 'Basic',
-          data: [{memory, instances, cpus, diskSpaceInMb, constraints}],
-          titleColor: 'black'
-        },
-        nexus: {
-          title: 'Nexus',
-          data: [{groupId, artifactId, repositoryName, artifactType}],
-          titleColor: 'grey'
-        },
-        docker: {
-          title: 'Docker',
-          data: [{dockerRegistryUrl, imageName, pullImageOnEveryLaunch, networkType, portMappings}],
-          titleColor: 'blue   '
-        },
-        marathon: {
-          title: 'Marathon',
-          data: [{marathonUrl, marathonUser, marathonPassword}],
-          titleColor: 'olive'
-        },
-        envVariables: {
-          title: 'Env Variables',
-          data: [envVariables],
-          titleColor: 'green'
-        },
-        healthChecks: {
-          title: 'Health Checks',
-          data: healthChecks,
-          titleColor: 'red'
-        }
-      }
-      const detailProps = {breadcrumbProps, gridsProps, titleProps, isStickyMenu, activeItem}
+    const detailProps = {breadcrumbProps, deploymentConfig, titleProps, isStickyMenu, activeSideMenuItem}
+    if (isEditMode || isCreateMode) {
+      const detailFormProps = {...detailProps, isCreateMode}
       return (
-        <DeployConfigDetailComponent
-          {...detailProps}
-          handleSideMenuClick={this.handleSideMenuClick}
-          sideMenuStateChange={::this.sideMenuStateChange}
-          handleDeleteClick={this.handleDeleteClick}
-          handleEditClick={this.handleEditClick}
-          isLoading={isLoading}/>
-      )
-    }
-    const detailFormProps = {breadcrumbProps, deploymentConfig, titleProps, isStickyMenu, activeItem, isCreateMode}
-    return (
-      <div>
         <DeployConfigDetailFormComponent
           {...detailFormProps}
           handleInputChange={this.handleInputChange}
@@ -242,20 +188,29 @@ class DeployConfigDetail extends Component {
           handleSubmit={this.handleSubmit}
           handleCancelClick={this.handleCancelClick}
         />
-      </div>
+      )
+    }
+    return (
+      <DeployConfigDetailComponent
+        {...detailProps}
+        handleSideMenuClick={this.handleSideMenuClick}
+        sideMenuStateChange={::this.sideMenuStateChange}
+        handleDeleteClick={this.handleDeleteClick}
+        handleEditClick={this.handleEditClick}
+        isLoading={isLoading}/>
 
     )
   }
 }
 
 function mapStateToProps (state) {
-  console.log('mapStateToProps')
   return {
     deploymentConfig: state.deployConfig.deploymentConfig,
     isEditMode: state.deployConfig.isEditMode,
     isStickyMenu: state.deployConfig.isStickyMenu,
     isLoading: state.deployConfig.isLoading,
-    backToList: state.deployConfig.backToList
+    backToList: state.deployConfig.backToList,
+    activeSideMenuItem: state.deployConfig.activeSideMenuItem
   }
 }
 
@@ -284,7 +239,9 @@ function mapDispatchToProps (dispatch) {
     enterViewMode: () =>
       dispatch(CHANGE_MODE(false)),
     changeSideMenuPos: (isSticky) =>
-      dispatch(STICK_SIDE_MENU(isSticky))
+      dispatch(STICK_SIDE_MENU(isSticky)),
+    changeActiveSideMenuItem: (name) =>
+      dispatch(ACTIVATE_SIDE_MENU_ITEM(name))
   }
 }
 

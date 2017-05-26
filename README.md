@@ -1,20 +1,6 @@
 # DR application dashboard
 The project is a fork from React-Semantic.UI-Starter
 
-## Out-of-box:
-
-![](https://github.com/Metnew/react-semantic.ui-starter/blob/for-gh/screen.gif)
-
-[![Build Status](https://travis-ci.org/Metnew/react-semantic.ui-starter.svg?branch=master)](https://travis-ci.org/Metnew/react-semantic.ui-starter)
-[![codecov](https://codecov.io/gh/Metnew/react-semantic.ui-starter/branch/master/graph/badge.svg)](https://codecov.io/gh/Metnew/react-semantic.ui-starter)
-[![David](https://img.shields.io/david/metnew/react-semantic.ui-starter.svg)]()
-[![David](https://img.shields.io/david/dev/metnew/react-semantic.ui-starter.svg)]()
-[![bitHound Overall Score](https://www.bithound.io/github/Metnew/react-semantic.ui-starter/badges/score.svg)](https://www.bithound.io/github/Metnew/react-semantic.ui-starter)
-[![Known Vulnerabilities](https://snyk.io/test/github/metnew/react-semantic.ui-starter/badge.svg)](https://snyk.io/test/github/metnew/react-semantic.ui-starter)
-[![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
-<!-- [![JavaScript Style Guide](https://cdn.rawgit.com/feross/standard/master/badge.svg)](https://github.com/feross/standard) -->
-<!-- [![Code Climate](https://codeclimate.com/github/codeclimate/codeclimate/badges/gpa.svg)](https://codeclimate.com/github/codeclimate/codeclimate) -->
-
 ### What is it?
 Production-ready, performance-first, optimized, robust, fully-featured boilerplate/example for your **new Progressive Web App**.
 

@@ -8,14 +8,14 @@ import SideMenuComponent from './SideMenuComponent'
 export default class DeployConfigDetailComponent extends PureComponent {
   static propTypes = {
     breadcrumbProps: PropTypes.obj,
+    deploymentConfig: PropTypes.obj,
     titleProps: PropTypes.obj,
-    gridsProps: PropTypes.obj,
     handleDeleteClick: PropTypes.func,
     handleEditClick: PropTypes.func,
     handleSideMenuClick: PropTypes.func,
     sideMenuStateChange: PropTypes.func,
     isStickyMenu: PropTypes.bool,
-    activeItem: PropTypes.string,
+    activeSideMenuItem: PropTypes.string,
     titleColor: PropTypes.string,
     isLoading: PropTypes.bool
   }
@@ -24,15 +24,57 @@ export default class DeployConfigDetailComponent extends PureComponent {
     const {
       breadcrumbProps,
       titleProps,
-      gridsProps,
+      deploymentConfig,
       handleDeleteClick,
       handleEditClick,
       handleSideMenuClick,
       sideMenuStateChange,
       isStickyMenu,
-      activeItem,
+      activeSideMenuItem,
       isLoading
     } = this.props
+
+    const {
+      memory, instances, cpus, diskSpaceInMb, constraints,
+      nexusConfiguration = {},
+      dockerConfiguration = {},
+      marathonConfiguration = {},
+      envVariables = {},
+      healthChecks = []
+    } = deploymentConfig
+
+    const gridsProps = {
+      basic: {
+        title: 'Basic',
+        data: [{memory, instances, cpus, diskSpaceInMb, constraints}],
+        titleColor: 'black'
+      },
+      nexus: {
+        title: 'Nexus',
+        data: [nexusConfiguration],
+        titleColor: 'grey'
+      },
+      docker: {
+        title: 'Docker',
+        data: [dockerConfiguration],
+        titleColor: 'blue   '
+      },
+      marathon: {
+        title: 'Marathon',
+        data: [marathonConfiguration],
+        titleColor: 'olive'
+      },
+      envVariables: {
+        title: 'Env Variables',
+        data: [envVariables],
+        titleColor: 'green'
+      },
+      healthChecks: {
+        title: 'Health Checks',
+        data: healthChecks,
+        titleColor: 'red'
+      }
+    }
     return (
       <div>
         <Breadcrumb {...breadcrumbProps} />
@@ -44,7 +86,7 @@ export default class DeployConfigDetailComponent extends PureComponent {
           </Dimmer>
           }
           <Grid.Column width={2}>
-            <SideMenuComponent activeItem={activeItem} handleMenuClick={handleSideMenuClick} isSticky={isStickyMenu}
+            <SideMenuComponent activeItem={activeSideMenuItem} handleMenuClick={handleSideMenuClick} isSticky={isStickyMenu}
                                stateChange={sideMenuStateChange}/>
           </Grid.Column>
           {!isLoading &&

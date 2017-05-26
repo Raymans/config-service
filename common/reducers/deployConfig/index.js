@@ -11,7 +11,8 @@ import {
   CHANGE_TO_EDIT_MODE,
   CHANGE_TO_VIEW_MODE,
   NORMAL_SIDE_MENU,
-  STICKY_SIDE_MENU
+  STICKY_SIDE_MENU,
+  CHANGE_ACTIVE_SIDE_MENU_ITEM
 } from 'actions/deployConfig'
 import {LOCATION_CHANGE} from 'actions/common'
 import _ from 'lodash'
@@ -36,7 +37,8 @@ export const initialState = {
     envVariables: {},
     tempEnvVariables: [{key: '', value: ''}]
   },
-  isLoading: true
+  isLoading: true,
+  activeSideMenuItem: 'basic'
 }
 
 const reduceEnvVariablesForInputForm = (envVariables) => {
@@ -88,6 +90,11 @@ export function deployConfig (state = initialState, action) {
       return {
         ...state,
         isStickyMenu: false
+      }
+    case CHANGE_ACTIVE_SIDE_MENU_ITEM:
+      return {
+        ...state,
+        activeSideMenuItem: action.value
       }
     case GET_DEPLOYMENT_CONFIG_FAIL:
     case UPDATE_DEPLOYMENT_CONFIG_FAIL:
